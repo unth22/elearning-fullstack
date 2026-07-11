@@ -5,6 +5,7 @@ import CoursesPage from "./pages/CoursesPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CourseStudyPage from "./pages/CourseStudyPage";
+import CourseDetailPage from "./pages/CourseDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SrsReviewPage from "./pages/SrsReviewPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/course/:id" element={<CourseStudyPage />} />
+        <Route path="/course/:id/detail" element={<CourseDetailPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/srs-review" element={<SrsReviewPage />} />
         <Route path="/profile" element={<ProfilePage />} />

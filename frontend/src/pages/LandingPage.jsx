@@ -107,6 +107,13 @@ const COURSES = [
   },
 ];
 
+// Ánh xạ id khóa học (marketing) → id khóa học thật trong DB (đã có nội dung/trang chi tiết).
+// Khóa nào chưa có bản ghi DB tương ứng (hsk6, biz, office) thì chưa hiện nút "Xem chi tiết".
+const COURSE_DETAIL_MAP = {
+  factory: 7, ecommerce: 9, law: 1, finance: 2, it: 3,
+  logistics: 4, beauty: 5, sales: 6, hospitality: 8, general: 10, government: 11,
+};
+
 // Kiến thức chuyên sâu: bài giảng về quy trình nghiệp vụ & ứng dụng thực tế,
 // bổ sung cho các khóa học chuyên ngành ở trên.
 const TRACKS = [
@@ -381,6 +388,14 @@ export default function LandingPage() {
                     padding: "12px 24px", fontSize: 14 }}>
                     Đăng ký khóa học
                   </button>
+                  {COURSE_DETAIL_MAP[c.id] && (
+                    <button onClick={() => navigate(`/course/${COURSE_DETAIL_MAP[c.id]}/detail`)}
+                      style={{ width: "100%", background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "inherit", fontSize: 13, color: "rgba(255,255,255,.55)",
+                        textDecoration: "underline", padding: "2px 0" }}>
+                      Xem chi tiết khóa học
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

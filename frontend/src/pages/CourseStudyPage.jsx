@@ -9,8 +9,14 @@ import HanziMode from "../components/study/HanziMode";
 import DictationMode from "../components/study/DictationMode";
 import ShadowingMode from "../components/study/ShadowingMode";
 import GrammarMode from "../components/study/GrammarMode";
+import LectureMode from "../components/study/LectureMode";
+
+// Từ vựng gắn nhãn này chỉ dùng để tra cứu (mục "Từ vựng" có bộ lọc theo tag),
+// không đưa vào vòng luyện tập chính (Flashcard/Trắc nghiệm/Nét chữ) để tránh tràn lan.
+const LOOKUP_ONLY_TAG = "Chủ đề: Kỹ thuật";
 
 const MODES = [
+  { id: "lecture", label: "Bài giảng", icon: "🎬" },
   { id: "flashcard", label: "Flashcard", icon: "🃏" },
   { id: "quiz", label: "Trắc nghiệm", icon: "✏️" },
   { id: "vocab", label: "Từ vựng", icon: "📖" },
@@ -28,7 +34,7 @@ export default function CourseStudyPage() {
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("flashcard");
+  const [mode, setMode] = useState("lecture");
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -52,6 +58,7 @@ export default function CourseStudyPage() {
   }
 
   const accentColor = course.accent_color || "#E8B84B";
+  const mainVocab = vocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
 
   return (
     <div className="flex min-h-screen bg-dem-sau">
@@ -119,10 +126,11 @@ export default function CourseStudyPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto py-7 px-5">
-          {mode === "flashcard" && <FlashcardMode vocab={vocab} accentColor={accentColor} key="fc" />}
-          {mode === "quiz" && <QuizMode vocab={vocab} accentColor={accentColor} key="q" />}
+          {mode === "lecture" && <LectureMode course={course} accentColor={accentColor} />}
+          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}
+          {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key="q" />}
           {mode === "vocab" && <VocabMode vocab={vocab} accentColor={accentColor} />}
-          {mode === "hanzi" && <HanziMode vocab={vocab} accentColor={accentColor} key="hz" />}
+          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} key="hz" />}
           {mode === "dictation" && <DictationMode sentences={sentences} accentColor={accentColor} key="d" />}
           {mode === "shadowing" && <ShadowingMode sentences={sentences} accentColor={accentColor} key="s" />}
           {mode === "grammar" && <GrammarMode grammar={grammar} sentences={sentences} accentColor={accentColor} />}

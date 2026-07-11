@@ -203,8 +203,17 @@ export default function DashboardPage() {
               <div style={{ fontSize: 19, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
                 {continueLesson ? continueLesson.title : "Xem lại nội dung khóa học"}
               </div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginBottom: 14 }}>
+              <div style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginBottom: 14,
+                display: "flex", alignItems: "center", gap: 8 }}>
                 {enrollment.title}
+                <Link to={`/course/${enrollment.course_id}/detail`} onClick={(e) => e.stopPropagation()}
+                  title="Xem chi tiết khóa học"
+                  style={{ color: "rgba(255,255,255,.7)", textDecoration: "none", fontWeight: 800,
+                    fontSize: 15, width: 22, height: 22, borderRadius: "50%",
+                    background: "rgba(255,255,255,.12)", display: "flex", alignItems: "center",
+                    justifyContent: "center", lineHeight: 1 }}>
+                  ⋯
+                </Link>
               </div>
               <PBar value={completedCount} max={totalLessons || 1} color={C.red} h={6} />
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>

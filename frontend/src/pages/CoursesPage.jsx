@@ -12,7 +12,7 @@ const STEPS = [
   { title: "Bạn muốn đạt được gì?", subtitle: "Mục tiêu rõ ràng giúp học nhanh hơn 3x", cta: "Bắt đầu học! 🚀" },
 ];
 
-function OptionCard({ icon, label, sub, active, accent, onClick }) {
+function OptionCard({ icon, label, sub, active, accent, onClick, detailHref }) {
   return (
     <button
       onClick={onClick}
@@ -20,11 +20,24 @@ function OptionCard({ icon, label, sub, active, accent, onClick }) {
         background: "#fff", borderRadius: 20, padding: "34px 16px 30px",
         border: `2px solid ${active ? accent : C.border}`,
         boxShadow: active ? `0 4px 20px ${accent}30` : "0 1px 4px rgba(26,26,46,.05)",
-        cursor: "pointer", textAlign: "center", fontFamily: "inherit",
+        cursor: "pointer", textAlign: "center", fontFamily: "inherit", position: "relative",
         transition: "border-color .15s, box-shadow .15s, transform .15s",
         transform: active ? "translateY(-2px)" : "none",
       }}
     >
+      {detailHref && (
+        <span
+          role="link"
+          title="Xem chi tiết khóa học"
+          onClick={(e) => { e.stopPropagation(); window.open(detailHref, "_blank"); }}
+          style={{ position: "absolute", top: 10, right: 12, fontSize: 18, fontWeight: 800,
+            width: 26, height: 26, borderRadius: "50%", background: C.bg, color: C.t3,
+            display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+            lineHeight: 1 }}
+        >
+          ⋯
+        </span>
+      )}
       <div style={{ fontSize: 44, marginBottom: 18, lineHeight: 1 }}>{icon}</div>
       <div style={{ fontSize: 18, fontWeight: 700, color: active ? accent : C.t1, lineHeight: 1.4 }}>
         {label}
@@ -135,6 +148,7 @@ export default function CoursesPage() {
                   active={course.id === courseId}
                   accent={course.accent_color || C.red}
                   onClick={() => setCourseId(course.id)}
+                  detailHref={`/course/${course.id}/detail`}
                 />
               ))}
             </div>
