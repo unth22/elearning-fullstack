@@ -31,7 +31,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8] px-5">
+    <div className="min-h-screen flex flex-col bg-[#FAFAF8]">
+      <Link to="/" className="px-6 py-4 flex items-center gap-2 no-underline">
+        <span style={{ fontFamily: "'Noto Serif SC', serif", color: "#F7C948", fontSize: 26, lineHeight: 1 }}>商</span>
+        <div>
+          <div className="font-bold text-sm text-muc-dem leading-tight">Tiếng Trung Thương Mại</div>
+          <div className="text-[9px] text-black/40 tracking-wide">BUSINESS CHINESE &amp; HSK6 WITH AI</div>
+        </div>
+      </Link>
+      <div className="flex-1 flex items-center justify-center px-5 pb-16">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white border border-black/5 rounded-xl p-6">
         <h1 className="font-serif text-xl font-semibold text-muc-dem mb-1">Đăng nhập</h1>
         <p className="text-sm text-black/50 mb-6">
@@ -65,6 +73,7 @@ export default function LoginPage() {
           Chưa có tài khoản? <Link to="/register" className="text-do-han font-medium">Đăng ký</Link>
         </p>
       </form>
+      </div>
     </div>
   );
 }
