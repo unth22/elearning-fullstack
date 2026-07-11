@@ -201,8 +201,8 @@ export default function CourseStudyPage() {
       <StudyToolsDock
         accentColor={accentColor}
         notesCount={notes.length}
-        onOpenDictionary={() => setShowDictionary(true)}
-        onOpenNotes={() => setShowNotes(true)}
+        onOpenDictionary={() => { setShowDictionary(true); setShowNotes(false); }}
+        onOpenNotes={() => { setShowNotes(true); setShowDictionary(false); }}
       />
       {showDictionary && <DictionaryPopup accentColor={accentColor} onClose={() => setShowDictionary(false)} />}
       {showNotes && (
