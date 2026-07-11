@@ -271,11 +271,12 @@ export default function LandingPage() {
               </Btn>
             </div>
 
-            <div style={{ display: "flex", gap: 36, marginTop: 44, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 20, marginTop: 44, flexWrap: "nowrap" }}>
               {[["500+", "Học viên đã học"], ["92%", "Đạt mục tiêu nghề nghiệp"], ["10+", "Khóa chuyên ngành"], ["AI", "Công nghệ học tập"]].map(([n, l]) => (
-                <div key={l}>
-                  <div style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 800, color: C.gold }}>{n}</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: 1 }}>{l}</div>
+                <div key={l} style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 800, color: C.gold, whiteSpace: "nowrap" }}>{n}</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.5)", textTransform: "uppercase",
+                    letterSpacing: .5, whiteSpace: "nowrap" }}>{l}</div>
                 </div>
               ))}
             </div>
