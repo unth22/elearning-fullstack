@@ -150,6 +150,12 @@ export default function SrsReviewPage() {
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,.6)", marginTop: 2, fontStyle: "italic" }}>
                     {card.example_vi}
                   </div>
+                  <button onClick={(e) => { e.stopPropagation(); speak(card.example_zh); }}
+                    style={{ marginTop: 8, background: "rgba(255,255,255,.08)", border: "none",
+                      borderRadius: 8, padding: "5px 12px", color: "rgba(255,255,255,.75)",
+                      fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                    🔊 Nghe câu
+                  </button>
                 </div>
               )}
             </div>
