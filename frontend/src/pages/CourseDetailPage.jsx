@@ -3,6 +3,11 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { getCourseById } from "../services/courseService";
 import { getCurrentUser } from "../services/authService";
 import { C, Pill, Btn } from "../styles/theme";
+import TrialModal from "../components/study/TrialModal";
+
+function trialModalSeenKey(courseId) {
+  return `trialModalSeen_${courseId}`;
+}
 
 function Section({ title, children }) {
   return (
@@ -32,6 +37,7 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showTrialModal, setShowTrialModal] = useState(false);
 
   useEffect(() => {
     getCourseById(id)
@@ -58,6 +64,21 @@ export default function CourseDetailPage() {
   const accent = course.accent_color || C.red;
   const moduleCount = info?.modules?.length || 0;
   const ctaLabel = user ? "Vào học ngay →" : "Học thử miễn phí →";
+
+  function handleEnterClass() {
+    if (!user) { navigate("/courses"); return; }
+    if (localStorage.getItem(trialModalSeenKey(course.id))) {
+      navigate(`/course/${course.id}`);
+      return;
+    }
+    setShowTrialModal(true);
+  }
+
+  function confirmStartTrial() {
+    localStorage.setItem(trialModalSeenKey(course.id), "1");
+    setShowTrialModal(false);
+    navigate(`/course/${course.id}`);
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: C.body, color: C.t1 }}>
@@ -91,7 +112,7 @@ export default function CourseDetailPage() {
               Giảng viên: <span style={{ color: "#fff", fontWeight: 600 }}>Đội ngũ Business Chinese Pro</span>
             </div>
           </div>
-          <Btn size="lg" onClick={() => navigate(user ? `/course/${course.id}` : "/courses")}>
+          <Btn size="lg" onClick={handleEnterClass}>
             {ctaLabel}
           </Btn>
         </div>
@@ -249,10 +270,18 @@ export default function CourseDetailPage() {
         )}
 
         <Btn size="lg" style={{ width: "100%" }}
-          onClick={() => navigate(user ? `/course/${course.id}` : "/courses")}>
+          onClick={handleEnterClass}>
           {user ? "Vào học ngay →" : "Đăng ký khóa học →"}
         </Btn>
       </div>
+
+      {showTrialModal && (
+        <TrialModal
+          courseTitle={course.title}
+          onClose={() => setShowTrialModal(false)}
+          onStart={confirmStartTrial}
+        />
+      )}
     </div>
   );
 }

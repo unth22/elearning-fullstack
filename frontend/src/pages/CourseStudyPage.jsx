@@ -16,7 +16,11 @@ import ModuleProgressBar, { MODULE_STEPS } from "../components/study/ModuleProgr
 import StudyToolsDock from "../components/study/StudyToolsDock";
 import DictionaryPopup from "../components/study/DictionaryPopup";
 import NotesPanel from "../components/study/NotesPanel";
+import TrialExpiredNotice from "../components/study/TrialExpiredNotice";
 import { getNotesByCourse, createNote } from "../services/noteService";
+import { getMyEnrollments } from "../services/enrollmentService";
+
+const TRIAL_DAYS = 3;
 
 // Từ vựng gắn nhãn này chỉ dùng để tra cứu (mục "Từ vựng" có bộ lọc theo tag),
 // không đưa vào vòng luyện tập chính (Flashcard/Trắc nghiệm/Nét chữ) để tránh tràn lan.
@@ -47,11 +51,19 @@ export default function CourseStudyPage() {
   const [showDictionary, setShowDictionary] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [moduleProgress, setModuleProgress] = useState({}); // { [moduleIndex]: Set(stepId) }
+  const [enrolledAt, setEnrolledAt] = useState(null);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id), getNotesByCourse(id).catch(() => [])])
-      .then(([c, v, g, s, n]) => { setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n); })
+    Promise.all([
+      getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id),
+      getNotesByCourse(id).catch(() => []), getMyEnrollments().catch(() => []),
+    ])
+      .then(([c, v, g, s, n, enrollments]) => {
+        setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n);
+        const enr = enrollments.find((e) => String(e.course_id) === String(id));
+        setEnrolledAt(enr?.enrolled_at || null);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
@@ -95,6 +107,8 @@ export default function CourseStudyPage() {
   const accentColor = course.accent_color || "#C0392B";
   const mainVocab = vocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
   const modules = course.intro_content?.modules || [];
+  const trialExpired = !!enrolledAt
+    && (Date.now() - new Date(enrolledAt).getTime()) > TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
   const currentLabel = mode === "lecture"
     ? (modules[moduleIndex]?.subtitle || "Bài giảng")
@@ -225,7 +239,8 @@ export default function CourseStudyPage() {
         )}
 
         <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
-          {mode === "lecture" && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} />}
+          {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
+          {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} />}
           {mode === "phrases" && <PhrasesMode />}
           {mode === "dialogue" && <DialogueMode />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}
