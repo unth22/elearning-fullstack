@@ -10,6 +10,10 @@ import DictationMode from "../components/study/DictationMode";
 import ShadowingMode from "../components/study/ShadowingMode";
 import GrammarMode from "../components/study/GrammarMode";
 import LectureMode from "../components/study/LectureMode";
+import StudyToolsDock from "../components/study/StudyToolsDock";
+import DictionaryPopup from "../components/study/DictionaryPopup";
+import NotesPanel from "../components/study/NotesPanel";
+import { getNotesByCourse, createNote } from "../services/noteService";
 
 // Từ vựng gắn nhãn này chỉ dùng để tra cứu (mục "Từ vựng" có bộ lọc theo tag),
 // không đưa vào vòng luyện tập chính (Flashcard/Trắc nghiệm/Nét chữ) để tránh tràn lan.
@@ -36,14 +40,26 @@ export default function CourseStudyPage() {
   const [mode, setMode] = useState("lecture");
   const [moduleIndex, setModuleIndex] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [notes, setNotes] = useState([]);
+  const [showDictionary, setShowDictionary] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id)])
-      .then(([c, v, g, s]) => { setCourse(c); setVocab(v); setGrammar(g); setSentences(s); })
+    Promise.all([getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id), getNotesByCourse(id).catch(() => [])])
+      .then(([c, v, g, s, n]) => { setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n); })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleSaveNote({ selectedText, color, note }) {
+    try {
+      const created = await createNote({ courseId: id, selectedText, color, note });
+      setNotes((prev) => [created, ...prev]);
+    } catch (err) {
+      console.error("Lỗi lưu ghi chú:", err.message);
+    }
+  }
 
   if (loading) {
     return <div className="min-h-screen bg-white flex items-center justify-center text-gray-400">Đang tải khóa học...</div>;
@@ -171,7 +187,7 @@ export default function CourseStudyPage() {
         </div>
 
         <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
-          {mode === "lecture" && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} />}
+          {mode === "lecture" && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}
           {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key="q" />}
           {mode === "vocab" && <VocabMode vocab={vocab} accentColor={accentColor} />}
@@ -181,6 +197,21 @@ export default function CourseStudyPage() {
           {mode === "grammar" && <GrammarMode grammar={grammar} sentences={sentences} accentColor={accentColor} />}
         </div>
       </div>
+
+      <StudyToolsDock
+        accentColor={accentColor}
+        notesCount={notes.length}
+        onOpenDictionary={() => setShowDictionary(true)}
+        onOpenNotes={() => setShowNotes(true)}
+      />
+      {showDictionary && <DictionaryPopup accentColor={accentColor} onClose={() => setShowDictionary(false)} />}
+      {showNotes && (
+        <NotesPanel
+          notes={notes}
+          onClose={() => setShowNotes(false)}
+          onDeleted={(delId) => setNotes((prev) => prev.filter((n) => n.id !== delId))}
+        />
+      )}
     </div>
   );
 }

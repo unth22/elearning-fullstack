@@ -1,4 +1,6 @@
-export default function LectureMode({ course, moduleIndex = 0, accentColor }) {
+import Highlightable from "./Highlightable";
+
+export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote }) {
   const modules = course?.intro_content?.modules;
 
   if (!modules || !modules.length) {
@@ -32,12 +34,18 @@ export default function LectureMode({ course, moduleIndex = 0, accentColor }) {
         </div>
         <div className="h-px flex-1 bg-gray-200" />
       </div>
-      <h2 className="text-xl font-bold text-gray-900 mb-4">{m.subtitle}</h2>
+      <Highlightable as="h2" text={m.subtitle} notes={notes} onSave={onSaveNote}
+        className="text-xl font-bold text-gray-900 mb-4 block" />
       <div className="flex flex-wrap gap-2 mb-8">
         {(m.topics || []).map((t, j) => (
-          <span key={j} className="text-sm text-gray-600 bg-gray-100 rounded-lg px-3 py-1.5">{t}</span>
+          <Highlightable key={j} text={t} notes={notes} onSave={onSaveNote}
+            className="text-sm text-gray-600 bg-gray-100 rounded-lg px-3 py-1.5 inline-block" />
         ))}
       </div>
+
+      <p className="text-xs text-gray-400">
+        💡 Mẹo: bôi đen chữ trong bài giảng để tô màu highlight hoặc lưu vào ghi chú (icon 📝 góc dưới bên phải).
+      </p>
     </div>
   );
 }

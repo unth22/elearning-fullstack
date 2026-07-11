@@ -16,6 +16,7 @@ const activityRoutes = require("./routes/activityRoutes");
 const dictionaryRoutes = require("./routes/dictionaryRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const noteRoutes = require("./routes/noteRoutes");
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api", activityRoutes);
 app.use("/api", dictionaryRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", notificationRoutes);
+app.use("/api", noteRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

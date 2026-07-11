@@ -7,7 +7,7 @@ export default function FlashcardMode({ vocab, accentColor }) {
   const [known, setKnown] = useState(new Set());
   const [deck, setDeck] = useState(vocab);
 
-  if (!vocab.length) return <p className="text-chu-nhat text-center">Chưa có từ vựng cho khóa học này.</p>;
+  if (!vocab.length) return <p className="text-gray-400 text-center">Chưa có từ vựng cho khóa học này.</p>;
 
   const card = deck[idx];
 
@@ -27,14 +27,14 @@ export default function FlashcardMode({ vocab, accentColor }) {
   return (
     <div className="flex flex-col items-center gap-6 px-4">
       <div className="flex gap-3 items-center">
-        <span className="text-vang-kim font-mono text-[13px]">{idx + 1} / {deck.length}</span>
-        <div className="bg-dem-nhat rounded-full h-1.5 w-[180px] overflow-hidden">
+        <span className="font-mono text-[13px]" style={{ color: accentColor }}>{idx + 1} / {deck.length}</span>
+        <div className="bg-gray-200 rounded-full h-1.5 w-[180px] overflow-hidden">
           <div
             className="h-full transition-all duration-300"
             style={{ background: accentColor, width: `${((idx + 1) / deck.length) * 100}%` }}
           />
         </div>
-        <span className="text-xanh-luc text-[13px]">✓ {known.size}</span>
+        <span className="text-emerald-600 text-[13px]">✓ {known.size}</span>
       </div>
 
       <div onClick={() => setFlipped((f) => !f)} className="w-[min(440px,100%)] h-[340px] cursor-pointer select-none" style={{ perspective: 1200 }}>
@@ -44,37 +44,37 @@ export default function FlashcardMode({ vocab, accentColor }) {
         >
           {/* Mặt trước — chỉ chữ Hán */}
           <div
-            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center shadow-[0_8px_32px_#00000055]"
-            style={{ backfaceVisibility: "hidden", background: "linear-gradient(135deg, #1E3A5F 0%, #0F2840 100%)", border: `2px solid ${accentColor}33` }}
+            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.08)]"
+            style={{ backfaceVisibility: "hidden", background: "#fff", border: `2px solid ${accentColor}33` }}
           >
-            <div className="text-7xl font-serif text-chu-ngoc leading-tight">{card.zh}</div>
+            <div className="text-7xl font-serif text-gray-900 leading-tight">{card.zh}</div>
             <button
               onClick={(e) => { e.stopPropagation(); speak(card.zh); }}
               className="mt-6 bg-transparent rounded-full px-4 py-1.5 text-[13px]"
               style={{ border: `1px solid ${accentColor}66`, color: accentColor }}
             >🔊 Nghe</button>
-            <div className="absolute bottom-3.5 text-chu-mo text-xs">Nhấn để lật ↓</div>
+            <div className="absolute bottom-3.5 text-gray-400 text-xs">Nhấn để lật ↓</div>
           </div>
 
           {/* Mặt sau — pinyin, nghĩa Việt, tiếng Anh, câu ví dụ */}
           <div
-            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center gap-1.5 shadow-[0_8px_32px_#00000055] px-6 py-5 overflow-y-auto"
-            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "linear-gradient(135deg, #0F2840 0%, #1E3A5F 100%)", border: `2px solid ${accentColor}66` }}
+            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center gap-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.08)] px-6 py-5 overflow-y-auto"
+            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "#F9FAFB", border: `2px solid ${accentColor}66` }}
           >
             <div className="font-mono text-sm" style={{ color: accentColor }}>{card.pinyin}</div>
-            <div className="text-2xl text-chu-ngoc font-bold text-center">{card.vi}</div>
-            {card.en && <div className="text-sm text-chu-nhat">{card.en}</div>}
+            <div className="text-2xl text-gray-900 font-bold text-center">{card.vi}</div>
+            {card.en && <div className="text-sm text-gray-400">{card.en}</div>}
             <div className="flex gap-1.5 mt-1 flex-wrap justify-center">
               {(card.tags || []).map((t) => (
-                <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]" style={{ background: accentColor + "22", color: accentColor }}>{t}</span>
+                <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]" style={{ background: accentColor + "18", color: accentColor }}>{t}</span>
               ))}
             </div>
 
             {card.example_zh && (
-              <div className="w-full mt-2.5 pt-2.5 border-t border-vien-dem text-center">
-                <div className="text-base font-serif text-chu-ngoc leading-snug">{card.example_zh}</div>
-                <div className="font-mono text-xs text-chu-nhat mt-1">{card.example_pinyin}</div>
-                <div className="text-xs text-chu-mo mt-1">{card.example_vi}</div>
+              <div className="w-full mt-2.5 pt-2.5 border-t border-gray-200 text-center">
+                <div className="text-base font-serif text-gray-900 leading-snug">{card.example_zh}</div>
+                <div className="font-mono text-xs text-gray-500 mt-1">{card.example_pinyin}</div>
+                <div className="text-xs text-gray-400 mt-1">{card.example_vi}</div>
                 <button
                   onClick={(e) => { e.stopPropagation(); speak(card.example_zh); }}
                   className="mt-2 bg-transparent rounded-full px-3 py-1 text-[11px]"
@@ -88,9 +88,9 @@ export default function FlashcardMode({ vocab, accentColor }) {
 
       <div className="flex gap-3">
         <button onClick={() => next(false)} className="px-7 py-3 rounded-2xl border-2 border-[#E74C3C] bg-transparent text-[#E74C3C] text-[15px] font-semibold">✗ Chưa nhớ</button>
-        <button onClick={() => next(true)} className="px-7 py-3 rounded-2xl border-none bg-xanh-luc text-white text-[15px] font-semibold">✓ Đã nhớ</button>
+        <button onClick={() => next(true)} className="px-7 py-3 rounded-2xl border-none bg-emerald-500 text-white text-[15px] font-semibold">✓ Đã nhớ</button>
       </div>
-      <button onClick={reset} className="bg-transparent border-none text-chu-mo text-[13px]">🔀 Xáo bài & làm lại</button>
+      <button onClick={reset} className="bg-transparent border-none text-gray-400 text-[13px]">🔀 Xáo bài & làm lại</button>
     </div>
   );
 }
