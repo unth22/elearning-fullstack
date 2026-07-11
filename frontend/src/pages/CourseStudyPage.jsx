@@ -10,6 +10,9 @@ import DictationMode from "../components/study/DictationMode";
 import ShadowingMode from "../components/study/ShadowingMode";
 import GrammarMode from "../components/study/GrammarMode";
 import LectureMode from "../components/study/LectureMode";
+import PhrasesMode from "../components/study/PhrasesMode";
+import DialogueMode from "../components/study/DialogueMode";
+import ModuleProgressBar, { MODULE_STEPS } from "../components/study/ModuleProgressBar";
 import StudyToolsDock from "../components/study/StudyToolsDock";
 import DictionaryPopup from "../components/study/DictionaryPopup";
 import NotesPanel from "../components/study/NotesPanel";
@@ -43,6 +46,7 @@ export default function CourseStudyPage() {
   const [notes, setNotes] = useState([]);
   const [showDictionary, setShowDictionary] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [moduleProgress, setModuleProgress] = useState({}); // { [moduleIndex]: Set(stepId) }
 
   useEffect(() => {
     setLoading(true);
@@ -51,6 +55,21 @@ export default function CourseStudyPage() {
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Đánh dấu bước hiện tại là đã xem, bất kể đến bằng cách nào (tải trang lần đầu,
+  // chọn module, bấm thanh tiến trình, hay bấm mục luyện tập ở sidebar).
+  useEffect(() => {
+    if (!course) return;
+    const mods = course.intro_content?.modules || [];
+    const inFlow = mods.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
+    if (!inFlow) return;
+    setModuleProgress((prev) => {
+      const set = new Set(prev[moduleIndex] || []);
+      if (set.has(mode)) return prev;
+      set.add(mode);
+      return { ...prev, [moduleIndex]: set };
+    });
+  }, [course, mode, moduleIndex]);
 
   async function handleSaveNote({ selectedText, color, note }) {
     try {
@@ -79,12 +98,20 @@ export default function CourseStudyPage() {
 
   const currentLabel = mode === "lecture"
     ? (modules[moduleIndex]?.subtitle || "Bài giảng")
-    : PRACTICE_MODES.find((m) => m.id === mode)?.label;
+    : PRACTICE_MODES.find((m) => m.id === mode)?.label
+      || MODULE_STEPS.find((s) => s.id === mode)?.label
+      || "";
 
   function selectModule(i) {
     setMode("lecture");
     setModuleIndex(i);
   }
+
+  function goToStep(stepId) {
+    setMode(stepId);
+  }
+
+  const inModuleFlow = modules.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -127,7 +154,7 @@ export default function CourseStudyPage() {
           {PRACTICE_MODES.map((m) => (
             <button
               key={m.id}
-              onClick={() => setMode(m.id)}
+              onClick={() => goToStep(m.id)}
               className="w-full text-left px-3.5 py-2.5 rounded-[10px] mb-1 text-sm flex items-center gap-2 transition-all"
               style={{
                 background: mode === m.id ? accentColor + "16" : "transparent",
@@ -175,7 +202,7 @@ export default function CourseStudyPage() {
           {PRACTICE_MODES.map((m) => (
             <button
               key={m.id}
-              onClick={() => setMode(m.id)}
+              onClick={() => goToStep(m.id)}
               className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap flex-shrink-0"
               style={{
                 border: `1px solid ${mode === m.id ? accentColor : "#E5E7EB"}`,
@@ -186,8 +213,21 @@ export default function CourseStudyPage() {
           ))}
         </div>
 
+        {/* Thanh tiến trình trong module: bài giảng → trắc nghiệm → flashcard → cụm từ →
+            ngữ pháp → hội thoại → nghe chép → shadowing */}
+        {modules.length > 0 && (
+          <ModuleProgressBar
+            activeStepId={inModuleFlow ? mode : null}
+            completedSteps={moduleProgress[moduleIndex]}
+            onSelect={goToStep}
+            accentColor={accentColor}
+          />
+        )}
+
         <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
           {mode === "lecture" && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} />}
+          {mode === "phrases" && <PhrasesMode />}
+          {mode === "dialogue" && <DialogueMode />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}
           {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key="q" />}
           {mode === "vocab" && <VocabMode vocab={vocab} accentColor={accentColor} />}

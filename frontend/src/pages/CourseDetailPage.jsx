@@ -15,6 +15,16 @@ function Section({ title, children }) {
   );
 }
 
+function StatItem({ value, label }) {
+  return (
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: C.t1, textDecoration: "underline",
+        textDecorationColor: C.border, textUnderlineOffset: 4 }}>{value}</div>
+      <div style={{ fontSize: 12.5, color: C.t3, marginTop: 3, lineHeight: 1.5 }}>{label}</div>
+    </div>
+  );
+}
+
 export default function CourseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,23 +56,56 @@ export default function CourseDetailPage() {
 
   const info = course.intro_content;
   const accent = course.accent_color || C.red;
+  const moduleCount = info?.modules?.length || 0;
+  const ctaLabel = user ? "Vào học ngay →" : "Học thử miễn phí →";
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: C.body, color: C.t1 }}>
-      {/* Header */}
-      <div style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, padding: "48px 24px 40px" }}>
+      {/* Header kiểu Coursera: eyebrow + tiêu đề lớn + giảng viên + CTA, sau đó
+          1 thẻ thống kê (module/trình độ/hình thức/lịch học) đè nhẹ lên đáy header. */}
+      <div style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, padding: "48px 24px 64px" }}>
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           <button onClick={() => navigate(-1)} style={{ background: "none", border: "none",
             color: "rgba(255,255,255,.6)", fontSize: 14, cursor: "pointer", marginBottom: 18, padding: 0 }}>
             ← Quay lại
           </button>
-          <div style={{ fontSize: 40, marginBottom: 10 }}>{course.icon}</div>
-          <h1 style={{ fontFamily: C.serif, fontSize: 32, fontWeight: 800, color: "#fff", marginBottom: 8 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase",
+            color: C.gold, marginBottom: 14 }}>
+            {course.icon} {course.industry || "Chuyên ngành"} {course.level ? `· ${course.level}` : ""}
+          </div>
+          <h1 style={{ fontFamily: C.serif, fontSize: 34, fontWeight: 800, color: "#fff", marginBottom: 8 }}>
             {course.title}
           </h1>
           {course.name_zh && (
-            <div style={{ fontFamily: C.hanzi, fontSize: 16, color: "rgba(255,255,255,.5)" }}>{course.name_zh}</div>
+            <div style={{ fontFamily: C.hanzi, fontSize: 16, color: "rgba(255,255,255,.5)", marginBottom: 16 }}>{course.name_zh}</div>
           )}
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,.65)", marginBottom: 22 }}>
+            Thuộc chương trình <b style={{ color: "#fff" }}>Business Chinese Pro</b>
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 26 }}>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: accent + "33",
+              color: accent, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+              🎓
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>
+              Giảng viên: <span style={{ color: "#fff", fontWeight: 600 }}>Đội ngũ Business Chinese Pro</span>
+            </div>
+          </div>
+          <Btn size="lg" onClick={() => navigate(user ? `/course/${course.id}` : "/courses")}>
+            {ctaLabel}
+          </Btn>
+        </div>
+      </div>
+
+      {/* Thẻ thống kê — đè nhẹ lên đáy header, giống bố cục Coursera */}
+      <div style={{ maxWidth: 780, margin: "-34px auto 0", padding: "0 24px", position: "relative" }}>
+        <div style={{ background: "#fff", borderRadius: 18, border: `1px solid ${C.border}`,
+          boxShadow: "0 10px 34px rgba(26,26,46,.1)", padding: "22px 26px",
+          display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 22 }}>
+          <StatItem value={moduleCount > 0 ? `${moduleCount} module` : "Đang cập nhật"} label="Nội dung học, hiểu nền tảng và thực hành" />
+          <StatItem value={course.level || "Mọi trình độ"} label="Không yêu cầu kinh nghiệm trước" />
+          <StatItem value="Tự học theo giáo trình" label="Video, flashcard, luyện tập tương tác" />
+          <StatItem value="Lịch học linh hoạt" label="Học theo tiến độ riêng của bạn" />
         </div>
       </div>
 
