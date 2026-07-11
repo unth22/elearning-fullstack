@@ -8,7 +8,14 @@ import { C, Pill, Btn } from "../styles/theme";
 // + toàn bộ chuyên ngành thực tế đang có trong backend (courses.industry).
 const COURSES = [
   {
-    id: "hsk6", hanzi: "六级", level: "★ Phổ biến nhất", featured: true,
+    id: "hsk13", hanzi: "基础汉语", level: "★ Khóa nền tảng", featured: true,
+    name: "Nền Tảng HSK1-3",
+    desc: "Xây dựng nền tảng tiếng Trung vững chắc từ con số 0 — tiền đề để học chuyên ngành hoặc làm việc thực tế bằng tiếng Trung.",
+    features: ["600+ từ vựng & ngữ pháp HSK1-3", "10 module từ phát âm đến giao tiếp thực tế", "Luyện Nghe - Nói - Đọc - Viết toàn diện", "Nền tảng vững chắc để học tiếp mọi khóa chuyên ngành"],
+    price: "8.900.000", note: "/ 70 buổi",
+  },
+  {
+    id: "hsk6", hanzi: "六级", level: "Chuyên sâu", featured: false,
     name: "HSK 6 Tiêu Chuẩn",
     desc: "Giáo trình chuẩn thi HSK 6 chính thức. 5000+ từ vựng theo 15 chủ đề, 30 điểm ngữ pháp nâng cao, luyện đề thực chiến.",
     features: ["5000+ từ vựng học thuật & xã hội", "30 cấu trúc ngữ pháp nâng cao", "Luyện nghe bản tin, phỏng vấn", "Kỹ năng viết tóm tắt 400 chữ", "4 đề thi thử HSK 6 chuẩn thức"],
@@ -110,7 +117,7 @@ const COURSES = [
 // Ánh xạ id khóa học (marketing) → id khóa học thật trong DB (đã có nội dung/trang chi tiết).
 // Khóa nào chưa có bản ghi DB tương ứng (hsk6, biz, office) thì chưa hiện nút "Xem chi tiết".
 const COURSE_DETAIL_MAP = {
-  factory: 7, ecommerce: 9, law: 1, finance: 2, it: 3,
+  hsk13: 12, factory: 7, ecommerce: 9, law: 1, finance: 2, it: 3,
   logistics: 4, beauty: 5, sales: 6, hospitality: 8, general: 10, government: 11,
 };
 
@@ -352,8 +359,8 @@ export default function LandingPage() {
               </h2>
             </div>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,.55)", lineHeight: 1.7 }}>
-              Từ học thuật đến chuyên ngành nghề nghiệp — mỗi khoá được xây dựng
-              sát thực tế, dành cho người đã có nền tảng HSK 3-5.
+              Từ nền tảng cho người mới bắt đầu đến chuyên ngành nghề nghiệp —
+              mỗi khoá được xây dựng sát thực tế, phù hợp với đúng trình độ của bạn.
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
