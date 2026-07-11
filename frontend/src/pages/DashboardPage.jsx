@@ -15,6 +15,34 @@ function greeting() {
   return "Chào buổi tối 🌙";
 }
 
+function buildTodaySchedule(srsDue) {
+  return [
+    { icon: "🎬", label: "Bài giảng", tasks: [
+      "Xem tiếp bài giảng module hiện tại",
+      "Ghi chú lại từ vựng/ngữ pháp mới gặp",
+    ] },
+    { icon: "🃏", label: "Flashcard", tasks: srsDue > 0
+      ? [`${srsDue} thẻ cần ôn hôm nay`, "Ôn lại từ vựng bằng Flashcard"]
+      : ["Đã ôn hết thẻ hôm nay ✅", "Học thêm từ vựng mới nếu muốn"] },
+    { icon: "✏️", label: "Trắc nghiệm", tasks: [
+      "Làm bài trắc nghiệm kiểm tra từ đã học",
+      "Xem lại các câu đã làm sai",
+    ] },
+    { icon: "📝", label: "Ngữ pháp", tasks: [
+      "Ôn lại 1 cấu trúc ngữ pháp mới",
+      "Đặt câu ví dụ áp dụng thực tế",
+    ] },
+    { icon: "🎧", label: "Nghe chép", tasks: [
+      "Nghe chép 1 đoạn hội thoại ngắn",
+      "Tự chữa câu sai, không xem đáp án trước",
+    ] },
+    { icon: "🎤", label: "Shadowing", tasks: [
+      "Luyện shadowing theo câu mẫu",
+      "Luyện phát âm 4 thanh điệu chuẩn",
+    ] },
+  ];
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
@@ -155,6 +183,35 @@ export default function DashboardPage() {
               ))}
               <span style={{ fontSize: 10, color: C.t3, marginLeft: 3 }}>tuần này</span>
             </div>
+          </div>
+        </div>
+
+        {/* Lịch học hôm nay — gợi ý theo từng kỹ năng cho khóa đang chọn */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, marginBottom: 10, letterSpacing: .6 }}>
+            LỊCH HỌC HÔM NAY
+          </div>
+          <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 6 }}>
+            {buildTodaySchedule(srsStats.due).map((s) => (
+              <div key={s.label} onClick={() => navigate(`/course/${enrollment.course_id}`)}
+                style={{ minWidth: 220, flexShrink: 0, background: "#fff", borderRadius: 16,
+                  border: `1px solid ${C.border}`, padding: 16, cursor: "pointer" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{s.icon} {s.label}</div>
+                <div style={{ fontSize: 12, color: C.t3, marginBottom: 2 }}>
+                  Khóa học: <span style={{ color: enrollment.accent_color || C.red, fontWeight: 600 }}>{enrollment.title}</span>
+                </div>
+                <div style={{ fontSize: 11, color: C.t3, marginBottom: 12 }}>Hàng ngày</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {s.tasks.map((t, i) => (
+                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: 2, marginTop: 4, flexShrink: 0,
+                        background: enrollment.accent_color || C.red }} />
+                      <span style={{ fontSize: 12.5, color: C.t2, lineHeight: 1.5 }}>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

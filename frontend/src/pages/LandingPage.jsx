@@ -10,7 +10,7 @@ const COURSES = [
   {
     id: "hsk13", hanzi: "基础汉语", level: "★ Khóa nền tảng", featured: true,
     name: "Nền Tảng HSK1-3",
-    desc: "Xây dựng nền tảng tiếng Trung vững chắc từ con số 0 — tiền đề để học chuyên ngành hoặc làm việc thực tế bằng tiếng Trung.",
+    desc: "Xây dựng nền tảng tiếng Trung vững chắc từ con số 0 — tiền đề để học sâu hơn vào chuyên ngành và sử dụng tiếng Trung để làm việc.",
     features: ["600+ từ vựng & ngữ pháp HSK1-3", "10 module từ phát âm đến giao tiếp thực tế", "Luyện Nghe - Nói - Đọc - Viết toàn diện", "Nền tảng vững chắc để học tiếp mọi khóa chuyên ngành"],
     price: "8.900.000", note: "/ 70 buổi",
   },
@@ -359,8 +359,9 @@ export default function LandingPage() {
               </h2>
             </div>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,.55)", lineHeight: 1.7 }}>
-              Từ nền tảng cho người mới bắt đầu đến chuyên ngành nghề nghiệp —
-              mỗi khoá được xây dựng sát thực tế, phù hợp với đúng trình độ của bạn.
+              Từ khóa học nền tảng cho người mới bắt đầu đến chuyên đề đi sâu vào
+              từng ngành nghề lĩnh vực — mỗi khoá học được xây dựng sát thực tế,
+              phù hợp với đúng trình độ của bạn.
             </p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
