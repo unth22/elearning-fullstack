@@ -38,7 +38,7 @@ function scorePronunciation(target, transcript) {
 
 export default function ShadowingMode({ sentences, accentColor }) {
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | done
+  const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | recorded | evaluated
   const [transcript, setTranscript] = useState("");
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
@@ -59,16 +59,17 @@ export default function ShadowingMode({ sentences, accentColor }) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const r = new SR();
     r.lang = "zh-CN"; r.continuous = false; r.interimResults = false;
-    r.onresult = (e) => { setTranscript(e.results[0][0].transcript); setPhase("done"); };
-    r.onerror = () => setPhase("done");
+    r.onresult = (e) => { setTranscript(e.results[0][0].transcript); setPhase("recorded"); };
+    r.onerror = () => setPhase("recorded");
     r.start();
     setPhase("shadowing");
   };
 
+  const retry = () => { setPhase("ready"); setTranscript(""); };
   const next = () => { setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); };
 
-  const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", done: accentColor };
-  const scored = phase === "done" && transcript ? scorePronunciation(sentence.zh, transcript) : null;
+  const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", recorded: accentColor, evaluated: accentColor };
+  const scored = phase === "evaluated" && transcript ? scorePronunciation(sentence.zh, transcript) : null;
 
   return (
     <div className="max-w-[520px] mx-auto px-4 text-center">
@@ -77,7 +78,8 @@ export default function ShadowingMode({ sentences, accentColor }) {
         {phase === "ready" && <div className="text-chu-mo text-sm mb-3">Nhấn để bắt đầu nghe câu mẫu</div>}
         {phase === "listening" && <div className="text-[#E8B84B] text-sm mb-3">🎧 Đang phát âm... hãy nghe thật kỹ</div>}
         {phase === "shadowing" && <div className="text-xanh-luc text-sm mb-3">🎤 Hãy nhại lại ngay bây giờ!</div>}
-        {phase === "done" && <div className="text-sm mb-3" style={{ color: accentColor }}>✅ Đã hoàn thành</div>}
+        {phase === "recorded" && <div className="text-sm mb-3" style={{ color: accentColor }}>🎙 Đã ghi âm xong — bấm "Đánh giá ghi âm" để chấm điểm</div>}
+        {phase === "evaluated" && <div className="text-sm mb-3" style={{ color: accentColor }}>✅ Đã chấm điểm</div>}
 
         {scored ? (
           <div className="text-2xl font-serif leading-relaxed text-chu-ngoc">
@@ -96,6 +98,13 @@ export default function ShadowingMode({ sentences, accentColor }) {
         {phase !== "ready" && <div className="text-chu-nhat text-sm mt-1.5">{sentence.vi}</div>}
       </div>
 
+      {phase === "recorded" && transcript && (
+        <div className="bg-dem-nhat-2 border border-vien-dem rounded-xl p-4 mb-4">
+          <div className="text-chu-nhat text-xs mb-1.5">Bạn đã nói:</div>
+          <div className="text-chu-ngoc text-lg font-serif">{transcript}</div>
+        </div>
+      )}
+
       {scored && (
         <div className="bg-dem-nhat-2 border border-vien-dem rounded-xl p-4 mb-4">
           <div className="text-chu-nhat text-xs mb-1.5">Bạn đã nói:</div>
@@ -112,17 +121,24 @@ export default function ShadowingMode({ sentences, accentColor }) {
         </div>
       )}
 
-      <div className="flex gap-2.5 justify-center">
+      <div className="flex gap-2.5 justify-center flex-wrap">
         {phase === "ready" && (
           <button onClick={startShadow} className="px-8 py-3.5 border-none rounded-2xl text-base font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>▶ Bắt đầu</button>
         )}
         {phase === "shadowing" && (
           <button onClick={startRecording} className="px-8 py-3.5 bg-[#E74C3C] border-none text-white rounded-2xl text-base font-bold animate-pulse">🎤 Ghi âm</button>
         )}
-        {phase === "done" && (
+        {phase === "recorded" && (
           <>
-            <button onClick={() => { setPhase("ready"); setTranscript(""); }} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
-            <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại câu mẫu</button>
+            <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
+            <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại</button>
+            <button onClick={() => setPhase("evaluated")} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>📊 Đánh giá ghi âm</button>
+          </>
+        )}
+        {phase === "evaluated" && (
+          <>
+            <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
+            <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại</button>
             <button onClick={next} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>Câu tiếp →</button>
           </>
         )}
