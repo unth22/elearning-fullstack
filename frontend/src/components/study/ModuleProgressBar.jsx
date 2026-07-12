@@ -1,11 +1,11 @@
 export const MODULE_STEPS = [
   { id: "lecture", label: "Bài giảng", icon: "🎬" },
-  { id: "quiz", label: "Trắc nghiệm đọc hiểu", icon: "✏️" },
+  { id: "quiz", label: "Trắc nghiệm", icon: "✏️" },
   { id: "flashcard", label: "Flashcard", icon: "🃏" },
   { id: "hanzi", label: "Nét chữ", icon: "✍️" },
   { id: "phrases", label: "Cụm từ", icon: "🔤" },
   { id: "grammar", label: "Ngữ pháp", icon: "📝" },
-  { id: "dialogue", label: "Câu hội thoại", icon: "💬" },
+  { id: "dialogue", label: "Hội thoại", icon: "💬" },
   { id: "dictation", label: "Nghe chép", icon: "🎧" },
   { id: "shadowing", label: "Shadowing", icon: "🎤" },
 ];
@@ -35,34 +35,28 @@ export default function ModuleProgressBar({ activeStepId, completedSteps, onSele
           {doneCount}/{MODULE_STEPS.length} · {percent}%
         </span>
       </div>
-      <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", padding: "10px 20px 10px" }}>
-      {MODULE_STEPS.map((s, i) => {
-        const active = s.id === activeStepId;
-        const done = completedSteps?.has(s.id);
-        return (
-          <div key={s.id} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-            <button onClick={() => onSelect(s.id)} style={{ background: "none", border: "none",
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", padding: "8px 14px 6px" }}>
+        {MODULE_STEPS.map((s) => {
+          const active = s.id === activeStepId;
+          const done = completedSteps?.has(s.id);
+          return (
+            <button key={s.id} onClick={() => onSelect(s.id)} title={s.label} style={{ background: "none", border: "none",
               cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center",
-              gap: 5, padding: "0 12px", minWidth: 74 }}>
-              <div style={{ width: 30, height: 30, borderRadius: "50%", display: "flex",
-                alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800,
+              gap: 3, padding: "4px 8px", minWidth: 52 }}>
+              <div style={{ width: 25, height: 25, borderRadius: "50%", display: "flex",
+                alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800,
                 background: active ? accentColor : done ? accentColor + "22" : idleCircleBg,
                 color: active ? "#fff" : done ? accentColor : idleCircleColor,
                 border: active ? "none" : `1.5px solid ${done ? accentColor + "55" : border}` }}>
                 {done && !active ? "✓" : s.icon}
               </div>
-              <span style={{ fontSize: 10.5, textAlign: "center", lineHeight: 1.3, whiteSpace: "nowrap",
+              <span style={{ fontSize: 9.5, textAlign: "center", lineHeight: 1.2, whiteSpace: "nowrap",
                 color: active ? accentColor : idleLabelColor, fontWeight: active ? 700 : 500 }}>
                 {s.label}
               </span>
             </button>
-            {i < MODULE_STEPS.length - 1 && (
-              <div style={{ width: 20, height: 1.5, background: done ? accentColor + "55" : border,
-                marginTop: -14, flexShrink: 0 }} />
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
       </div>
     </div>
   );

@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { speak } from "./helpers";
 
-export default function DictationMode({ sentences, accentColor, dark = false }) {
+export default function DictationMode({ sentences, accentColor, dark = false, onComplete }) {
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState("");
   const [result, setResult] = useState(null);
   const [score, setScore] = useState(0);
+  const checked = useRef(new Set());
+  const completedRef = useRef(false);
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
 
@@ -15,6 +17,13 @@ export default function DictationMode({ sentences, accentColor, dark = false }) 
     const correct = input.trim() === current.zh;
     setResult(correct ? "correct" : "wrong");
     if (correct) setScore((s) => s + 1);
+    // Chỉ báo hoàn thành khi đã kiểm tra hết mọi câu trong bài (đúng hay sai
+    // cũng tính là đã luyện qua câu đó), không phải chỉ mở trang lên.
+    checked.current.add(idx);
+    if (!completedRef.current && checked.current.size >= sentences.length) {
+      completedRef.current = true;
+      onComplete?.();
+    }
   };
 
   const goTo = (newIdx) => {

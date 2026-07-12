@@ -1,13 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import { speak } from "./helpers";
 
-export default function HanziMode({ vocab, accentColor, dark = false }) {
+export default function HanziMode({ vocab, accentColor, dark = false, onComplete }) {
   // Nét chữ màu kem-trắng chỉ nổi trên nền tối; ở light theme (nền thẻ gần
   // trắng) phải đổi sang vàng đậm để không bị "biến mất" trên nền sáng.
   const strokeColor = dark ? "#F0EDE4" : "#D4A017";
   const [idx, setIdx] = useState(0);
   const [loaded, setLoaded] = useState(!!window.HanziWriter);
   const containerRef = useRef(null);
+  const visited = useRef(new Set());
+  const completedRef = useRef(false);
+
+  // Chỉ báo hoàn thành khi đã xem qua hết toàn bộ chữ trong bài, không phải
+  // chỉ mở lên là tính xong.
+  useEffect(() => {
+    visited.current.add(idx);
+    if (!completedRef.current && visited.current.size >= vocab.length && vocab.length > 0) {
+      completedRef.current = true;
+      onComplete?.();
+    }
+  }, [idx, vocab, onComplete]);
 
   useEffect(() => {
     if (!window.HanziWriter) {

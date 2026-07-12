@@ -9,7 +9,7 @@ function buildQuestions(vocab) {
   });
 }
 
-export default function QuizMode({ vocab, accentColor, dark = false }) {
+export default function QuizMode({ vocab, accentColor, dark = false, onComplete }) {
   const [qIdx, setQIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [score, setScore] = useState(0);
@@ -49,7 +49,7 @@ export default function QuizMode({ vocab, accentColor, dark = false }) {
     setChosen(opt.zh);
     if (opt.zh === q.card.zh) setScore((s) => s + 1);
     setTimeout(() => {
-      if (qIdx + 1 >= questions.length) setDone(true);
+      if (qIdx + 1 >= questions.length) { setDone(true); onComplete?.(); }
       else { setQIdx((i) => i + 1); setChosen(null); }
     }, 1000);
   };

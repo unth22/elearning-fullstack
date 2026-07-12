@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { speak } from "./helpers";
 
 const PUNCT = /[，。！？、,.!?\s]/;
@@ -69,12 +69,14 @@ function ScoreRing({ percent, size = 96 }) {
   );
 }
 
-export default function ShadowingMode({ sentences, accentColor }) {
+export default function ShadowingMode({ sentences, accentColor, onComplete }) {
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | recorded | evaluated
   const [transcript, setTranscript] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [bestScores, setBestScores] = useState({}); // { [sentenceIdx]: bestPercent } — trong phiên học này
+  const evaluated = useRef(new Set());
+  const completedRef = useRef(false);
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
 
@@ -112,6 +114,13 @@ export default function ShadowingMode({ sentences, accentColor }) {
     setAttempts((a) => a + 1);
     setBestScores((prev) => ({ ...prev, [idx]: Math.max(prev[idx] || 0, result.percent) }));
     setPhase("evaluated");
+    // Chỉ báo hoàn thành khi đã đánh giá ghi âm cho hết mọi câu trong bài,
+    // không phải chỉ mở trang lên.
+    evaluated.current.add(idx);
+    if (!completedRef.current && evaluated.current.size >= sentences.length) {
+      completedRef.current = true;
+      onComplete?.();
+    }
   };
 
   return (

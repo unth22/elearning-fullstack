@@ -91,21 +91,29 @@ export default function CourseStudyPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Đánh dấu bước hiện tại là đã xem, bất kể đến bằng cách nào (tải trang lần đầu,
-  // chọn module, bấm thanh tiến trình, hay bấm mục luyện tập ở sidebar). Lưu cả
-  // vào DB (module_progress) để Dashboard hiển thị lộ trình chính xác.
+  // Đánh dấu 1 bước là đã hoàn thành (lưu cả vào DB module_progress để Dashboard
+  // hiển thị lộ trình chính xác). Gọi khi thực sự làm xong nội dung của bước đó,
+  // không phải chỉ mở/xem qua.
+  function markStepComplete(stepId, mIdx = moduleIndex) {
+    setModuleProgress((prev) => {
+      const set = new Set(prev[mIdx] || []);
+      if (set.has(stepId)) return prev;
+      set.add(stepId);
+      markModuleStep(id, mIdx, stepId).catch((err) => console.error("Lỗi lưu tiến độ module:", err.message));
+      return { ...prev, [mIdx]: set };
+    });
+  }
+
+  // Các bước chỉ có nội dung để đọc/xem toàn bộ trên 1 trang (không phân trang
+  // từng thẻ) — mở lên là đã thấy hết nội dung, nên coi là hoàn thành ngay khi
+  // xem. Các bước còn lại (flashcard/quiz/nét chữ/nghe chép/shadowing) có nhiều
+  // thẻ/câu nối tiếp nhau nên phải tự báo hoàn thành qua onComplete khi đi hết.
+  const PASSIVE_STEPS = ["lecture", "phrases", "grammar", "dialogue"];
   useEffect(() => {
     if (!course) return;
     const mods = course.intro_content?.modules || [];
-    const inFlow = mods.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
-    if (!inFlow) return;
-    setModuleProgress((prev) => {
-      const set = new Set(prev[moduleIndex] || []);
-      if (set.has(mode)) return prev;
-      set.add(mode);
-      markModuleStep(id, moduleIndex, mode).catch((err) => console.error("Lỗi lưu tiến độ module:", err.message));
-      return { ...prev, [moduleIndex]: set };
-    });
+    if (mods.length === 0 || !PASSIVE_STEPS.includes(mode)) return;
+    markStepComplete(mode);
   }, [course, mode, moduleIndex, id]);
 
   async function handleSaveNote({ selectedText, color, note }) {
@@ -165,11 +173,9 @@ export default function CourseStudyPage() {
   const trialExpired = !!enrolledAt
     && (Date.now() - new Date(enrolledAt).getTime()) > TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
-  const currentLabel = mode === "lecture"
-    ? (modules[moduleIndex]?.subtitle || "Bài giảng")
-    : PRACTICE_MODES.find((m) => m.id === mode)?.label
-      || MODULE_STEPS.find((s) => s.id === mode)?.label
-      || "";
+  const currentStepLabel = MODULE_STEPS.find((s) => s.id === mode)?.label
+    || PRACTICE_MODES.find((m) => m.id === mode)?.label
+    || "";
 
   function selectModule(i) {
     setMode("lecture");
@@ -209,9 +215,9 @@ export default function CourseStudyPage() {
                   onClick={() => selectModule(i)}
                   className="w-full text-left px-3.5 py-2.5 rounded-[10px] mb-1 text-sm transition-all"
                   style={{
-                    background: mode === "lecture" && moduleIndex === i ? accentColor + "16" : "transparent",
-                    border: `1px solid ${mode === "lecture" && moduleIndex === i ? accentColor + "55" : "transparent"}`,
-                    color: mode === "lecture" && moduleIndex === i ? accentColor : theme.text2,
+                    background: moduleIndex === i ? accentColor + "16" : "transparent",
+                    border: `1px solid ${moduleIndex === i ? accentColor + "55" : "transparent"}`,
+                    color: moduleIndex === i ? accentColor : theme.text2,
                   }}
                 >
                   <div className="text-[10px] font-bold tracking-wider opacity-70">{m.title}</div>
@@ -230,8 +236,14 @@ export default function CourseStudyPage() {
           <button onClick={() => setSidebarOpen((o) => !o)} className="bg-transparent border-none text-lg" style={{ color: theme.text3 }}>☰</button>
           <div className="flex-1 text-sm">
             <Link to="/dashboard" className="no-underline" style={{ color: theme.text3 }}>{course.title}</Link>
+            {modules.length > 0 && (
+              <>
+                <span className="mx-2" style={{ color: theme.text3 }}>›</span>
+                <span style={{ color: theme.text3 }}>Module {moduleIndex + 1}</span>
+              </>
+            )}
             <span className="mx-2" style={{ color: theme.text3 }}>›</span>
-            <span className="font-semibold" style={{ color: theme.text1 }}>{currentLabel}</span>
+            <span className="font-semibold" style={{ color: theme.text1 }}>{currentStepLabel}</span>
           </div>
           <button
             onClick={() => scopedVocab[0] && speak(scopedVocab[0].zh)}
@@ -263,14 +275,14 @@ export default function CourseStudyPage() {
           {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} dark={dark} />}
           {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} />}
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
-          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`fc-${moduleIndex}`} />}
+          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("flashcard")} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
-            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} key={`rc-${moduleIndex}`} />
-            : <QuizMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`q-${moduleIndex}`} />)}
+            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} key={`rc-${moduleIndex}`} />
+            : <QuizMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} key={`q-${moduleIndex}`} />)}
           {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
-          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`hz-${moduleIndex}`} />}
-          {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} dark={dark} key={`d-${moduleIndex}`} />}
-          {mode === "shadowing" && <ShadowingMode sentences={scopedSentences} accentColor={accentColor} key={`s-${moduleIndex}`} />}
+          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("hanzi")} key={`hz-${moduleIndex}`} />}
+          {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("dictation")} key={`d-${moduleIndex}`} />}
+          {mode === "shadowing" && <ShadowingMode sentences={scopedSentences} accentColor={accentColor} onComplete={() => markStepComplete("shadowing")} key={`s-${moduleIndex}`} />}
           {mode === "grammar" && <GrammarMode grammar={scopedGrammar} sentences={scopedSentences} accentColor={accentColor} />}
         </div>
       </div>

@@ -1,11 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { speak, shuffle } from "./helpers";
 import { C } from "../../styles/theme";
 
-export default function FlashcardMode({ vocab, accentColor, dark = false }) {
+export default function FlashcardMode({ vocab, accentColor, dark = false, onComplete }) {
   const [idx, setIdx] = useState(0);
   const [known, setKnown] = useState(new Set());
   const [deck, setDeck] = useState(vocab);
+  const visited = useRef(new Set());
+  const completedRef = useRef(false);
+
+  // Chỉ báo hoàn thành khi đã xem qua hết toàn bộ thẻ trong bộ (không phải
+  // chỉ mở lên là tính xong), để tiến trình toolbar phản ánh đúng thực tế.
+  useEffect(() => {
+    visited.current.add(idx);
+    if (!completedRef.current && visited.current.size >= deck.length && deck.length > 0) {
+      completedRef.current = true;
+      onComplete?.();
+    }
+  }, [idx, deck, onComplete]);
 
   if (!vocab.length) return <p className="text-gray-400 text-center">Chưa có từ vựng cho khóa học này.</p>;
 
