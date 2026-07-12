@@ -186,6 +186,34 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Chọn khóa học bạn đang học */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, marginBottom: 10, letterSpacing: .6 }}>
+            KHÓA HỌC BẠN ĐANG HỌC
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {enrollments.map((e) => {
+              const active = e.course_id === selectedCourseId;
+              const accent = e.accent_color || C.red;
+              return (
+                <button key={e.course_id} onClick={() => setSelectedCourseId(e.course_id)} style={{
+                  padding: "8px 16px", borderRadius: 20, cursor: "pointer",
+                  border: `1.5px solid ${active ? accent : C.border}`,
+                  background: active ? accent + "18" : "#fff",
+                  color: active ? accent : C.t2,
+                  fontSize: 13, fontWeight: 700 }}>
+                  {e.icon} {e.title}
+                </button>
+              );
+            })}
+            <Link to="/courses" style={{
+              padding: "8px 16px", borderRadius: 20, textDecoration: "none",
+              border: `1.5px dashed ${C.border}`, color: C.t3, fontSize: 13, fontWeight: 600 }}>
+              + Khóa học khác
+            </Link>
+          </div>
+        </div>
+
         {/* Lịch học hôm nay — gợi ý theo từng kỹ năng cho khóa đang chọn */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, marginBottom: 10, letterSpacing: .6 }}>
@@ -212,34 +240,6 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Chọn khóa học bạn đang học */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, marginBottom: 10, letterSpacing: .6 }}>
-            KHÓA HỌC BẠN ĐANG HỌC
-          </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            {enrollments.map((e) => {
-              const active = e.course_id === selectedCourseId;
-              const accent = e.accent_color || C.red;
-              return (
-                <button key={e.course_id} onClick={() => setSelectedCourseId(e.course_id)} style={{
-                  padding: "8px 16px", borderRadius: 20, cursor: "pointer",
-                  border: `1.5px solid ${active ? accent : C.border}`,
-                  background: active ? accent + "18" : "#fff",
-                  color: active ? accent : C.t2,
-                  fontSize: 13, fontWeight: 700 }}>
-                  {e.icon} {e.title}
-                </button>
-              );
-            })}
-            <Link to="/courses" style={{
-              padding: "8px 16px", borderRadius: 20, textDecoration: "none",
-              border: `1.5px dashed ${C.border}`, color: C.t3, fontSize: 13, fontWeight: 600 }}>
-              + Khóa học khác
-            </Link>
           </div>
         </div>
 
