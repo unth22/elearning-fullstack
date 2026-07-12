@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { getCourseById, getVocabulary, getGrammar, getSentences } from "../services/courseService";
+import { getCourseById, getVocabulary, getGrammar, getSentences, getPhrases, getDialogue } from "../services/courseService";
 import { speak } from "../components/study/helpers";
 import FlashcardMode from "../components/study/FlashcardMode";
 import QuizMode from "../components/study/QuizMode";
@@ -44,6 +44,8 @@ export default function CourseStudyPage() {
   const [vocab, setVocab] = useState([]);
   const [grammar, setGrammar] = useState([]);
   const [sentences, setSentences] = useState([]);
+  const [phrases, setPhrases] = useState([]);
+  const [dialogueLines, setDialogueLines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mode, setMode] = useState(searchParams.get("mode") || "lecture");
@@ -61,9 +63,11 @@ export default function CourseStudyPage() {
       getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id),
       getNotesByCourse(id).catch(() => []), getMyEnrollments().catch(() => []),
       getModuleProgress(id).catch(() => []),
+      getPhrases(id).catch(() => []), getDialogue(id).catch(() => []),
     ])
-      .then(([c, v, g, s, n, enrollments, moduleProgressRows]) => {
+      .then(([c, v, g, s, n, enrollments, moduleProgressRows, ph, dl]) => {
         setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n);
+        setPhrases(ph); setDialogueLines(dl);
         const enr = enrollments.find((e) => String(e.course_id) === String(id));
         setEnrolledAt(enr?.enrolled_at || null);
         const hydrated = {};
@@ -130,8 +134,17 @@ export default function CourseStudyPage() {
   }
 
   const accentColor = course.accent_color || "#C0392B";
-  const mainVocab = vocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
   const modules = course.intro_content?.modules || [];
+
+  // Nội dung có module_index (bài nào) chỉ hiện đúng bài đang học; nội dung
+  // module_index = null (khóa học cũ, chưa tách theo bài) vẫn hiện xuyên suốt khóa.
+  const inModuleScope = (row) => row.module_index === null || row.module_index === undefined || row.module_index === moduleIndex;
+  const scopedVocab = vocab.filter(inModuleScope);
+  const scopedGrammar = grammar.filter(inModuleScope);
+  const scopedSentences = sentences.filter(inModuleScope);
+  const scopedPhrases = phrases.filter(inModuleScope);
+  const scopedDialogue = dialogueLines.filter(inModuleScope);
+  const mainVocab = scopedVocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
   const trialExpired = !!enrolledAt
     && (Date.now() - new Date(enrolledAt).getTime()) > TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
@@ -166,7 +179,7 @@ export default function CourseStudyPage() {
             <span className="text-xl">{course.icon}</span>
             <div className="text-[15px] font-bold text-gray-900 leading-tight">{course.title}</div>
           </div>
-          <div className="text-gray-400 text-xs">{vocab.length} từ vựng</div>
+          <div className="text-gray-400 text-xs">{modules.length > 0 ? `${scopedVocab.length} từ vựng (bài này)` : `${vocab.length} từ vựng`}</div>
         </div>
         <div className="flex-1 overflow-y-auto px-2.5 pb-5">
           {modules.length > 0 && (
@@ -218,7 +231,7 @@ export default function CourseStudyPage() {
             <span className="text-gray-900 font-semibold">{currentLabel}</span>
           </div>
           <button
-            onClick={() => vocab[0] && speak(vocab[0].zh)}
+            onClick={() => scopedVocab[0] && speak(scopedVocab[0].zh)}
             className="bg-transparent rounded-full px-3.5 py-1.5 text-[13px]"
             style={{ border: `1px solid ${accentColor}44`, color: accentColor }}
           >🔊 TTS</button>
@@ -238,15 +251,15 @@ export default function CourseStudyPage() {
         <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
           {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
           {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} />}
-          {mode === "phrases" && <PhrasesMode />}
-          {mode === "dialogue" && <DialogueMode />}
-          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}
-          {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key="q" />}
-          {mode === "vocab" && <VocabMode vocab={vocab} accentColor={accentColor} />}
-          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} key="hz" />}
-          {mode === "dictation" && <DictationMode sentences={sentences} accentColor={accentColor} key="d" />}
-          {mode === "shadowing" && <ShadowingMode sentences={sentences} accentColor={accentColor} key="s" />}
-          {mode === "grammar" && <GrammarMode grammar={grammar} sentences={sentences} accentColor={accentColor} />}
+          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} />}
+          {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} />}
+          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key={`fc-${moduleIndex}`} />}
+          {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key={`q-${moduleIndex}`} />}
+          {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
+          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} key={`hz-${moduleIndex}`} />}
+          {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} key={`d-${moduleIndex}`} />}
+          {mode === "shadowing" && <ShadowingMode sentences={scopedSentences} accentColor={accentColor} key={`s-${moduleIndex}`} />}
+          {mode === "grammar" && <GrammarMode grammar={scopedGrammar} sentences={scopedSentences} accentColor={accentColor} />}
         </div>
       </div>
 

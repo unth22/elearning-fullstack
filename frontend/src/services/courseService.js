@@ -35,3 +35,15 @@ export async function getSentences(courseId) {
   if (!res.ok) throw new Error("Không thể tải danh sách câu ví dụ.");
   return res.json();
 }
+
+export async function getPhrases(courseId) {
+  const res = await fetch(`${BASE_URL}/courses/${courseId}/phrases`);
+  if (!res.ok) throw new Error("Không thể tải danh sách cụm từ.");
+  return res.json();
+}
+
+export async function getDialogue(courseId) {
+  const res = await fetch(`${BASE_URL}/courses/${courseId}/dialogue`);
+  if (!res.ok) throw new Error("Không thể tải hội thoại.");
+  return res.json();
+}
