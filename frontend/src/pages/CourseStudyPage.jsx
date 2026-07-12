@@ -213,18 +213,6 @@ export default function CourseStudyPage() {
 
         {/* Mode tabs (mobile) */}
         <div className="flex gap-1.5 px-4 py-2.5 overflow-x-auto border-b border-gray-200 bg-white">
-          {modules.map((m, i) => (
-            <button
-              key={i}
-              onClick={() => selectModule(i)}
-              className="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap flex-shrink-0"
-              style={{
-                border: `1px solid ${mode === "lecture" && moduleIndex === i ? accentColor : "#E5E7EB"}`,
-                background: mode === "lecture" && moduleIndex === i ? accentColor + "16" : "transparent",
-                color: mode === "lecture" && moduleIndex === i ? accentColor : "#6B7280",
-              }}
-            >{m.title}</button>
-          ))}
           {PRACTICE_MODES.map((m) => (
             <button
               key={m.id}
