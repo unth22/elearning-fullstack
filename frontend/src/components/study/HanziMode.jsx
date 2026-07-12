@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { speak } from "./helpers";
 
-export default function HanziMode({ vocab, accentColor }) {
+export default function HanziMode({ vocab, accentColor, dark = false }) {
+  // Nét chữ màu kem-trắng chỉ nổi trên nền tối; ở light theme (nền thẻ gần
+  // trắng) phải đổi sang vàng đậm để không bị "biến mất" trên nền sáng.
+  const strokeColor = dark ? "#F0EDE4" : "#D4A017";
   const [idx, setIdx] = useState(0);
   const [loaded, setLoaded] = useState(!!window.HanziWriter);
   const containerRef = useRef(null);
@@ -29,13 +32,13 @@ export default function HanziMode({ vocab, accentColor }) {
       try {
         window.HanziWriter.create(`hw-${i}`, ch, {
           width: 120, height: 120, padding: 10,
-          strokeColor: "#F0EDE4", radicalColor: accentColor,
+          strokeColor, radicalColor: accentColor,
           outlineColor: "#2A4A7F", drawingColor: "#4CAF8E",
           showOutline: true, showCharacter: true,
         });
       } catch (e) {}
     });
-  }, [loaded, idx, card, accentColor]);
+  }, [loaded, idx, card, accentColor, strokeColor]);
 
   if (!vocab.length) return <p className="text-chu-nhat text-center">Chưa có từ vựng cho khóa học này.</p>;
 
@@ -51,7 +54,7 @@ export default function HanziMode({ vocab, accentColor }) {
       try {
         const w = window.HanziWriter.create(`hw-anim-${i}`, ch, {
           width: 120, height: 120, padding: 10,
-          strokeColor: "#F0EDE4", radicalColor: accentColor,
+          strokeColor, radicalColor: accentColor,
           outlineColor: "#2A4A7F", drawingColor: "#4CAF8E",
           showOutline: true, showCharacter: false,
         });

@@ -9,7 +9,7 @@ function buildQuestions(vocab) {
   });
 }
 
-export default function QuizMode({ vocab, accentColor }) {
+export default function QuizMode({ vocab, accentColor, dark = false }) {
   const [qIdx, setQIdx] = useState(0);
   const [chosen, setChosen] = useState(null);
   const [score, setScore] = useState(0);
@@ -75,14 +75,25 @@ export default function QuizMode({ vocab, accentColor }) {
       <div className="grid grid-cols-2 gap-2.5">
         {q.opts.map((opt) => {
           let cls = "bg-dem-nhat border-vien-dem text-chu-ngoc";
+          let style;
           if (chosen) {
-            if (opt.zh === q.card.zh) cls = "bg-[#1A4A3A] border-xanh-luc text-xanh-luc";
-            else if (opt.zh === chosen) cls = "bg-[#4A1A1A] border-[#E74C3C] text-[#E74C3C]";
+            if (opt.zh === q.card.zh) {
+              cls = "";
+              style = dark
+                ? { background: "#1A4A3A", borderColor: "#4CAF8E", color: "#4CAF8E" }
+                : { background: "#D1FAE5", borderColor: "#059669", color: "#047857" };
+            } else if (opt.zh === chosen) {
+              cls = "";
+              style = dark
+                ? { background: "#4A1A1A", borderColor: "#E74C3C", color: "#E74C3C" }
+                : { background: "#FEE2E2", borderColor: "#DC2626", color: "#B91C1C" };
+            }
           }
           return (
             <button
               key={opt.zh}
               onClick={() => pick(opt)}
+              style={style}
               className={`px-3 py-4 rounded-xl border-2 transition-all text-center ${cls} ${isZh2Vi ? "text-base" : "text-[13px] font-serif"}`}
             >
               {isZh2Vi ? opt.vi : opt.zh}

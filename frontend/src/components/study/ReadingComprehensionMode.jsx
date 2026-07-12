@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { speak } from "./helpers";
 
-function Question({ q, index, accentColor }) {
+function Question({ q, index, accentColor, dark }) {
   const [chosen, setChosen] = useState(null);
 
   return (
@@ -12,12 +12,22 @@ function Question({ q, index, accentColor }) {
       <div className="flex flex-col gap-2">
         {q.options.map((opt, i) => {
           let cls = "bg-dem-nhat-2 border-vien-dem text-chu-ngoc";
+          let style;
           if (chosen !== null) {
-            if (i === q.correct_index) cls = "bg-[#1A4A3A] border-xanh-luc text-xanh-luc";
-            else if (i === chosen) cls = "bg-[#4A1A1A] border-[#E74C3C] text-[#E74C3C]";
+            if (i === q.correct_index) {
+              cls = "";
+              style = dark
+                ? { background: "#1A4A3A", borderColor: "#4CAF8E", color: "#4CAF8E" }
+                : { background: "#D1FAE5", borderColor: "#059669", color: "#047857" };
+            } else if (i === chosen) {
+              cls = "";
+              style = dark
+                ? { background: "#4A1A1A", borderColor: "#E74C3C", color: "#E74C3C" }
+                : { background: "#FEE2E2", borderColor: "#DC2626", color: "#B91C1C" };
+            }
           }
           return (
-            <button key={i} onClick={() => chosen === null && setChosen(i)}
+            <button key={i} onClick={() => chosen === null && setChosen(i)} style={style}
               className={`px-3.5 py-2.5 rounded-xl border-2 text-left text-sm ${cls}`}>
               {opt}
             </button>
@@ -28,7 +38,7 @@ function Question({ q, index, accentColor }) {
   );
 }
 
-export default function ReadingComprehensionMode({ passage, questions, accentColor }) {
+export default function ReadingComprehensionMode({ passage, questions, accentColor, dark = false }) {
   return (
     <div className="max-w-2xl mx-auto px-2">
       <div className="text-vang-kim text-[13px] font-semibold mb-3">BÀI KHÓA</div>
@@ -50,7 +60,7 @@ export default function ReadingComprehensionMode({ passage, questions, accentCol
         <>
           <div className="text-vang-kim text-[13px] font-semibold mb-3">TRẮC NGHIỆM ĐỌC HIỂU</div>
           {questions.map((q, i) => (
-            <Question key={q.id} q={q} index={i} accentColor={accentColor} />
+            <Question key={q.id} q={q} index={i} accentColor={accentColor} dark={dark} />
           ))}
         </>
       )}

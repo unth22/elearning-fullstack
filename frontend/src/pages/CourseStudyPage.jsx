@@ -265,11 +265,11 @@ export default function CourseStudyPage() {
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
-            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} key={`rc-${moduleIndex}`} />
-            : <QuizMode vocab={mainVocab} accentColor={accentColor} key={`q-${moduleIndex}`} />)}
+            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} key={`rc-${moduleIndex}`} />
+            : <QuizMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`q-${moduleIndex}`} />)}
           {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
-          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} key={`hz-${moduleIndex}`} />}
-          {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} key={`d-${moduleIndex}`} />}
+          {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`hz-${moduleIndex}`} />}
+          {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} dark={dark} key={`d-${moduleIndex}`} />}
           {mode === "shadowing" && <ShadowingMode sentences={scopedSentences} accentColor={accentColor} key={`s-${moduleIndex}`} />}
           {mode === "grammar" && <GrammarMode grammar={scopedGrammar} sentences={scopedSentences} accentColor={accentColor} />}
         </div>

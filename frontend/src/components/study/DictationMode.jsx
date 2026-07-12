@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { speak } from "./helpers";
 
-export default function DictationMode({ sentences, accentColor }) {
+export default function DictationMode({ sentences, accentColor, dark = false }) {
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState("");
   const [result, setResult] = useState(null);
@@ -52,8 +52,16 @@ export default function DictationMode({ sentences, accentColor }) {
         className="w-full min-h-[80px] bg-dem-sau border-2 rounded-xl text-chu-ngoc text-lg px-4 py-3 font-serif resize-y outline-none box-border"
       />
       {result && (
-        <div className={`rounded-xl p-4 mt-2 ${result === "correct" ? "bg-[#1A4A3A]" : "bg-[#4A1A1A]"}`}>
-          <div className={`font-bold ${result === "correct" ? "text-xanh-luc" : "text-[#E74C3C]"}`}>
+        <div className="rounded-xl p-4 mt-2" style={{
+          background: result === "correct"
+            ? (dark ? "#1A4A3A" : "#D1FAE5")
+            : (dark ? "#4A1A1A" : "#FEE2E2"),
+        }}>
+          <div className="font-bold" style={{
+            color: result === "correct"
+              ? (dark ? "#4CAF8E" : "#047857")
+              : (dark ? "#E74C3C" : "#B91C1C"),
+          }}>
             {result === "correct" ? "✓ Chính xác!" : "✗ Chưa đúng"}
           </div>
           <div className="text-chu-ngoc text-lg font-serif mt-1.5">{current.zh}</div>

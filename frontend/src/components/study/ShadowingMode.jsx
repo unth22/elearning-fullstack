@@ -122,6 +122,7 @@ export default function ShadowingMode({ sentences, accentColor }) {
         {phase === "done" && (
           <>
             <button onClick={() => { setPhase("ready"); setTranscript(""); }} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
+            <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại câu mẫu</button>
             <button onClick={next} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>Câu tiếp →</button>
           </>
         )}
