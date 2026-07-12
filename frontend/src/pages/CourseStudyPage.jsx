@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
-import { getCourseById, getVocabulary, getGrammar, getSentences, getPhrases, getDialogue } from "../services/courseService";
+import { getCourseById, getVocabulary, getGrammar, getSentences, getPhrases, getDialogue, getReadingPassages, getComprehensionQuestions } from "../services/courseService";
 import { speak } from "../components/study/helpers";
 import FlashcardMode from "../components/study/FlashcardMode";
 import QuizMode from "../components/study/QuizMode";
@@ -12,6 +12,7 @@ import GrammarMode from "../components/study/GrammarMode";
 import LectureMode from "../components/study/LectureMode";
 import PhrasesMode from "../components/study/PhrasesMode";
 import DialogueMode from "../components/study/DialogueMode";
+import ReadingComprehensionMode from "../components/study/ReadingComprehensionMode";
 import ModuleProgressBar, { MODULE_STEPS } from "../components/study/ModuleProgressBar";
 import StudyToolsDock from "../components/study/StudyToolsDock";
 import DictionaryPopup from "../components/study/DictionaryPopup";
@@ -46,6 +47,8 @@ export default function CourseStudyPage() {
   const [sentences, setSentences] = useState([]);
   const [phrases, setPhrases] = useState([]);
   const [dialogueLines, setDialogueLines] = useState([]);
+  const [passages, setPassages] = useState([]);
+  const [comprehensionQuestions, setComprehensionQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mode, setMode] = useState(searchParams.get("mode") || "lecture");
@@ -64,10 +67,11 @@ export default function CourseStudyPage() {
       getNotesByCourse(id).catch(() => []), getMyEnrollments().catch(() => []),
       getModuleProgress(id).catch(() => []),
       getPhrases(id).catch(() => []), getDialogue(id).catch(() => []),
+      getReadingPassages(id).catch(() => []), getComprehensionQuestions(id).catch(() => []),
     ])
-      .then(([c, v, g, s, n, enrollments, moduleProgressRows, ph, dl]) => {
+      .then(([c, v, g, s, n, enrollments, moduleProgressRows, ph, dl, rp, cq]) => {
         setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n);
-        setPhrases(ph); setDialogueLines(dl);
+        setPhrases(ph); setDialogueLines(dl); setPassages(rp); setComprehensionQuestions(cq);
         const enr = enrollments.find((e) => String(e.course_id) === String(id));
         setEnrolledAt(enr?.enrolled_at || null);
         const hydrated = {};
@@ -144,6 +148,8 @@ export default function CourseStudyPage() {
   const scopedSentences = sentences.filter(inModuleScope);
   const scopedPhrases = phrases.filter(inModuleScope);
   const scopedDialogue = dialogueLines.filter(inModuleScope);
+  const scopedPassage = passages.find((p) => p.module_index === moduleIndex) || null;
+  const scopedQuestions = comprehensionQuestions.filter(inModuleScope);
   const mainVocab = scopedVocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
   const trialExpired = !!enrolledAt
     && (Date.now() - new Date(enrolledAt).getTime()) > TRIAL_DAYS * 24 * 60 * 60 * 1000;
@@ -254,7 +260,9 @@ export default function CourseStudyPage() {
           {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} />}
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key={`fc-${moduleIndex}`} />}
-          {mode === "quiz" && <QuizMode vocab={mainVocab} accentColor={accentColor} key={`q-${moduleIndex}`} />}
+          {mode === "quiz" && (scopedPassage
+            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} key={`rc-${moduleIndex}`} />
+            : <QuizMode vocab={mainVocab} accentColor={accentColor} key={`q-${moduleIndex}`} />)}
           {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
           {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} key={`hz-${moduleIndex}`} />}
           {mode === "dictation" && <DictationMode sentences={scopedSentences} accentColor={accentColor} key={`d-${moduleIndex}`} />}

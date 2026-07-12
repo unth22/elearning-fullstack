@@ -47,3 +47,15 @@ export async function getDialogue(courseId) {
   if (!res.ok) throw new Error("Không thể tải hội thoại.");
   return res.json();
 }
+
+export async function getReadingPassages(courseId) {
+  const res = await fetch(`${BASE_URL}/courses/${courseId}/reading-passages`);
+  if (!res.ok) throw new Error("Không thể tải bài khóa.");
+  return res.json();
+}
+
+export async function getComprehensionQuestions(courseId) {
+  const res = await fetch(`${BASE_URL}/courses/${courseId}/comprehension-questions`);
+  if (!res.ok) throw new Error("Không thể tải câu hỏi đọc hiểu.");
+  return res.json();
+}
