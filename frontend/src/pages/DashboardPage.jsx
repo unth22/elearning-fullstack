@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { getCurrentUser, logout } from "../services/authService";
 import { getMyEnrollments } from "../services/enrollmentService";
@@ -32,6 +32,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [courseLoading, setCourseLoading] = useState(false);
   const [error, setError] = useState("");
+  const sidebarRef = useRef(null);
+  const [roadmapMaxHeight, setRoadmapMaxHeight] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +69,17 @@ export default function DashboardPage() {
       .finally(() => !cancelled && setCourseLoading(false));
     return () => { cancelled = true; };
   }, [selectedCourseId]);
+
+  // Đo chiều cao cột sidebar (SRS, mục tiêu, tra cứu, gợi ý lịch học) để lộ trình
+  // bên trái dừng cuộn ở đúng chiều cao đó thay vì kéo dài vô hạn theo số module.
+  useEffect(() => {
+    function measure() {
+      if (sidebarRef.current) setRoadmapMaxHeight(sidebarRef.current.offsetHeight);
+    }
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [courseDetail, moduleProgressRows, srsStats, enrollments, selectedCourseId]);
 
   async function toggleLesson(lessonId, current) {
     await setLessonProgress(lessonId, !current);
@@ -291,6 +304,7 @@ export default function DashboardPage() {
                 LỘ TRÌNH CỦA BẠN
               </div>
 
+              <div style={{ maxHeight: roadmapMaxHeight || undefined, overflowY: roadmapMaxHeight ? "auto" : "visible" }}>
               {hasModules ? modules.map((m, i) => {
                 const status = moduleStatus(i);
                 const done = stepsDoneCount(i);
@@ -356,11 +370,12 @@ export default function DashboardPage() {
                   ))}
                 </>
               )}
+              </div>
             </div>
           </div>
 
           {/* Sidebar */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div ref={sidebarRef} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* SRS widget */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 20,
               border: `1.5px solid ${srsStats.due > 0 ? C.red + "44" : C.border}` }}>
