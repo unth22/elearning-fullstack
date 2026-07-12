@@ -21,6 +21,7 @@ function plantStage(percent) {
 export default function GoalTracker({ enrollment, progressPercent, wateredToday, onGoalSet }) {
   const [customDays, setCustomDays] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const accent = enrollment.accent_color || C.red;
 
   async function saveGoal(days) {
@@ -29,6 +30,7 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
     try {
       const updated = await setEnrollmentGoal(enrollment.course_id, days);
       onGoalSet(updated);
+      setEditing(false);
     } catch (err) {
       console.error("Lỗi đặt mục tiêu:", err.message);
     } finally {
@@ -36,7 +38,7 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
     }
   }
 
-  if (!enrollment.target_days) {
+  if (!enrollment.target_days || editing) {
     return (
       <div style={{ background: "#fff", borderRadius: 18, padding: 20, border: `1.5px solid ${C.border}` }}>
         <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>🎯 Đặt mục tiêu học tập</div>
@@ -66,6 +68,12 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
             Xác nhận
           </button>
         </div>
+        {enrollment.target_days && (
+          <button onClick={() => setEditing(false)} style={{ marginTop: 10, background: "none", border: "none",
+            color: C.t3, fontSize: 12, cursor: "pointer", padding: 0 }}>
+            ← Hủy, giữ mục tiêu cũ
+          </button>
+        )}
       </div>
     );
   }
@@ -80,7 +88,13 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
     <div style={{ background: "#fff", borderRadius: 18, padding: 20, border: `1.5px solid ${C.border}` }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700 }}>🎯 Mục tiêu học tập</div>
+          <div style={{ fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+            🎯 Mục tiêu học tập
+            <button onClick={() => setEditing(true)} title="Đặt lại thời gian mục tiêu" style={{
+              background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.t3, padding: 0 }}>
+              ✏️
+            </button>
+          </div>
           <div style={{ fontSize: 12, color: C.t3 }}>Hoàn thành trong {enrollment.target_days} ngày</div>
         </div>
         <div style={{ textAlign: "right" }}>
