@@ -183,7 +183,7 @@ export default function CourseStudyPage() {
   const inModuleFlow = modules.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
 
   return (
-    <div className={`flex min-h-screen ${dark ? "" : "theme-light"}`} style={{ background: theme.pageBg }}>
+    <div className={`flex h-screen ${dark ? "" : "theme-light"}`} style={{ background: theme.pageBg }}>
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? "w-[240px] min-w-[240px]" : "w-0 min-w-0"} border-r transition-all overflow-hidden flex-shrink-0 flex flex-col`}
@@ -218,23 +218,8 @@ export default function CourseStudyPage() {
                   <div className="leading-snug">{m.subtitle}</div>
                 </button>
               ))}
-              <div className="text-[11px] tracking-widest font-semibold px-1.5 mt-4 mb-2" style={{ color: theme.text3 }}>LUYỆN TẬP</div>
             </>
           )}
-          {PRACTICE_MODES.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => goToStep(m.id)}
-              className="w-full text-left px-3.5 py-2.5 rounded-[10px] mb-1 text-sm flex items-center gap-2 transition-all"
-              style={{
-                background: mode === m.id ? accentColor + "16" : "transparent",
-                border: `1px solid ${mode === m.id ? accentColor + "55" : "transparent"}`,
-                color: mode === m.id ? accentColor : theme.text2,
-              }}
-            >
-              <span>{m.icon}</span> {m.label}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -269,6 +254,7 @@ export default function CourseStudyPage() {
             completedSteps={moduleProgress[moduleIndex]}
             onSelect={goToStep}
             accentColor={accentColor}
+            dark={dark}
           />
         )}
 
