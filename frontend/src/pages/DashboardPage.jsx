@@ -195,9 +195,41 @@ export default function DashboardPage() {
         {/* Greeting + stats */}
         <div style={{ display: "flex", justifyContent: "space-between",
           alignItems: "flex-start", marginBottom: 24, flexWrap: "wrap", gap: 14 }}>
-          <div>
+          <div style={{ flex: 1, minWidth: 280 }}>
             <div style={{ fontSize: 13, color: C.t3 }}>{greeting()}</div>
-            <div style={{ fontSize: 24, fontWeight: 800 }}>{user?.fullName}</div>
+            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 14 }}>{user?.fullName}</div>
+
+            {/* Khóa học của tôi — để cạnh mục tiêu học tập cho đầy phần đầu trang */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, letterSpacing: .6 }}>
+                KHÓA HỌC CỦA TÔI
+              </div>
+              <Link to="/courses" style={{
+                padding: "6px 14px", borderRadius: 20, textDecoration: "none",
+                border: `1.5px dashed ${C.border}`, color: C.t3, fontSize: 12.5, fontWeight: 600 }}>
+                + Đăng ký khóa học khác
+              </Link>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {enrollments.map((e) => {
+                const active = e.course_id === selectedCourseId;
+                const accent = e.accent_color || C.red;
+                return (
+                  <button key={e.course_id} onClick={() => setSelectedCourseId(e.course_id)} style={{
+                    display: "flex", alignItems: "center", gap: 10, minWidth: 160,
+                    padding: "12px 16px", borderRadius: 16, cursor: "pointer", textAlign: "left",
+                    border: `1.5px solid ${active ? accent : C.border}`,
+                    background: active ? accent + "0F" : "#fff",
+                    boxShadow: active ? `0 4px 14px ${accent}22` : "none" }}>
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>{e.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? accent : C.t1, lineHeight: 1.3 }}>{e.title}</div>
+                      {e.name_zh && <div style={{ fontFamily: C.hanzi, fontSize: 11, color: C.t3, marginTop: 2 }}>{e.name_zh}</div>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div>
             <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
@@ -229,40 +261,6 @@ export default function DashboardPage() {
               ))}
               <span style={{ fontSize: 10, color: C.t3, marginLeft: 3 }}>tuần này</span>
             </div>
-          </div>
-        </div>
-
-        {/* Khóa học của tôi */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, letterSpacing: .6 }}>
-              KHÓA HỌC CỦA TÔI
-            </div>
-            <Link to="/courses" style={{
-              padding: "6px 14px", borderRadius: 20, textDecoration: "none",
-              border: `1.5px dashed ${C.border}`, color: C.t3, fontSize: 12.5, fontWeight: 600 }}>
-              + Đăng ký khóa học khác
-            </Link>
-          </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {enrollments.map((e) => {
-              const active = e.course_id === selectedCourseId;
-              const accent = e.accent_color || C.red;
-              return (
-                <button key={e.course_id} onClick={() => setSelectedCourseId(e.course_id)} style={{
-                  display: "flex", alignItems: "center", gap: 10, minWidth: 160,
-                  padding: "12px 16px", borderRadius: 16, cursor: "pointer", textAlign: "left",
-                  border: `1.5px solid ${active ? accent : C.border}`,
-                  background: active ? accent + "0F" : "#fff",
-                  boxShadow: active ? `0 4px 14px ${accent}22` : "none" }}>
-                  <span style={{ fontSize: 22, flexShrink: 0 }}>{e.icon}</span>
-                  <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? accent : C.t1, lineHeight: 1.3 }}>{e.title}</div>
-                    {e.name_zh && <div style={{ fontFamily: C.hanzi, fontSize: 11, color: C.t3, marginTop: 2 }}>{e.name_zh}</div>}
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </div>
 
