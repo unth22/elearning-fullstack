@@ -1,4 +1,6 @@
 const { getModuleProgress, markStepDone } = require("../models/moduleProgressModel");
+const { logActivity } = require("../models/activityModel");
+const { checkIn } = require("../models/checkinModel");
 
 async function listMyModuleProgress(req, res) {
   try {
@@ -17,6 +19,10 @@ async function markMyModuleStep(req, res) {
       return res.status(400).json({ message: "Thiếu thông tin bước học." });
     }
     const row = await markStepDone(req.user.userId, courseId, moduleIndex, stepId);
+    // Học bất kỳ bước nào trong bài cũng tính là "đã học hôm nay":
+    // tự động điểm danh (+ điểm) và tính vào chuỗi ngày học (streak),
+    // không cần bấm nút điểm danh thủ công nữa.
+    await Promise.all([logActivity(req.user.userId), checkIn(req.user.userId)]);
     return res.status(200).json(row || { alreadyDone: true });
   } catch (err) {
     console.error("Lỗi markMyModuleStep:", err.message);

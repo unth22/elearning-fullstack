@@ -17,25 +17,33 @@ export default function DictationMode({ sentences, accentColor }) {
     if (correct) setScore((s) => s + 1);
   };
 
-  const next = () => {
+  const goTo = (newIdx) => {
     setInput(""); setResult(null);
-    setIdx((i) => (i + 1) % sentences.length);
+    setIdx((newIdx + sentences.length) % sentences.length);
   };
 
   const borderColor = result === "correct" ? "#4CAF8E" : result === "wrong" ? "#E74C3C" : "#2A4A7F";
 
   return (
     <div className="max-w-[520px] mx-auto px-4">
-      <div className="text-chu-nhat text-[13px] mb-4">Nghe và gõ lại câu tiếng Trung • {idx + 1}/{sentences.length}</div>
-      <div className="bg-dem-nhat rounded-2xl p-6 mb-4" style={{ border: `1px solid ${accentColor}33` }}>
-        <div className="text-chu-nhat text-[13px] mb-2">Nghĩa tiếng Việt:</div>
-        <div className="text-chu-ngoc text-[17px] leading-relaxed">{current.vi}</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-chu-nhat text-[13px]">Nghe và gõ lại câu tiếng Trung • {idx + 1}/{sentences.length}</div>
+        <div className="flex gap-2">
+          <button onClick={() => goTo(idx - 1)} title="Câu trước"
+            className="w-8 h-8 rounded-full bg-dem-nhat text-chu-ngoc text-sm" style={{ border: `1px solid ${accentColor}44` }}>←</button>
+          <button onClick={() => goTo(idx + 1)} title="Câu tiếp"
+            className="w-8 h-8 rounded-full bg-dem-nhat text-chu-ngoc text-sm" style={{ border: `1px solid ${accentColor}44` }}>→</button>
+        </div>
+      </div>
+
+      <div className="flex justify-center mb-5">
         <button
           onClick={() => speak(current.zh)}
-          className="mt-4 border-none rounded-full px-5 py-2 text-sm font-bold"
+          className="border-none rounded-full w-20 h-20 text-3xl flex items-center justify-center"
           style={{ background: accentColor, color: "#0F1A2E" }}
-        >🔊 Nghe câu tiếng Trung</button>
+        >🔊</button>
       </div>
+
       <textarea
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -49,14 +57,16 @@ export default function DictationMode({ sentences, accentColor }) {
             {result === "correct" ? "✓ Chính xác!" : "✗ Chưa đúng"}
           </div>
           <div className="text-chu-ngoc text-lg font-serif mt-1.5">{current.zh}</div>
-          <div className="text-chu-nhat font-mono text-[13px] mt-1">{current.pinyin}</div>
+          <div className="text-chu-nhat text-[13px] mt-1">{current.pinyin}</div>
+          <div className="text-chu-mo text-sm mt-1">{current.vi}</div>
         </div>
       )}
       <div className="flex gap-2.5 mt-3">
         {!result ? (
-          <button onClick={check} className="flex-1 py-3 border-none rounded-xl text-[15px] font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>Kiểm tra</button>
+          <button onClick={check} disabled={!input.trim()} className="flex-1 py-3 border-none rounded-xl text-[15px] font-bold"
+            style={{ background: accentColor, color: "#0F1A2E", opacity: input.trim() ? 1 : .5 }}>Kiểm tra</button>
         ) : (
-          <button onClick={next} className="flex-1 py-3 bg-dem-nhat rounded-xl text-[15px]" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>Câu tiếp →</button>
+          <button onClick={() => goTo(idx + 1)} className="flex-1 py-3 bg-dem-nhat rounded-xl text-[15px]" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>Câu tiếp →</button>
         )}
       </div>
     </div>

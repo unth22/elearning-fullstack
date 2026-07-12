@@ -13,7 +13,11 @@ export default function GrammarMode({ grammar, sentences, accentColor }) {
           {grammar.map((g) => (
             <div key={g.id} className="bg-dem-nhat rounded-2xl p-5 mb-3" style={{ borderLeft: `4px solid ${accentColor}` }}>
               <div className="font-mono text-base font-bold mb-2.5" style={{ color: accentColor }}>{g.pattern}</div>
-              <div className="text-chu-ngoc text-lg font-serif mb-1.5">{g.example_zh}</div>
+              {g.explanation && (
+                <div className="text-chu-nhat text-sm leading-relaxed mb-3">{g.explanation}</div>
+              )}
+              <div className="text-chu-ngoc text-lg font-serif mb-1">{g.example_zh}</div>
+              {g.pinyin && <div className="text-chu-nhat text-[13px] mb-1.5">{g.pinyin}</div>}
               <div className="text-chu-nhat text-sm">{g.example_vi}</div>
               <button
                 onClick={() => speak(g.example_zh)}
@@ -30,7 +34,7 @@ export default function GrammarMode({ grammar, sentences, accentColor }) {
           {sentences.map((s) => (
             <div key={s.id} className="bg-dem-nhat-2 border border-dem-nhat rounded-2xl p-5 mb-2.5">
               <div className="text-chu-ngoc text-lg font-serif mb-1.5">{s.zh}</div>
-              <div className="text-chu-nhat font-mono text-[13px] mb-1">{s.pinyin}</div>
+              <div className="text-chu-nhat text-[13px] mb-1">{s.pinyin}</div>
               <div className="text-chu-mo text-sm">{s.vi}</div>
               <button
                 onClick={() => speak(s.zh)}

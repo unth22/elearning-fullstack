@@ -241,6 +241,8 @@ export default function DashboardPage() {
                 <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{srsStats.learned}</div>
                 <div style={{ fontSize: 11, color: C.t3 }}>từ đã học</div>
               </div>
+              {/* Điểm danh — gọn, tự động khi học sinh học bất kỳ bước nào */}
+              <DailyCheckin summary={checkin} onChecked={setCheckin} />
               {/* Mục tiêu học tập — streak hiện ở góc phải trên của thẻ này */}
               <div style={{ width: 260 }}>
                 <GoalTracker
@@ -385,9 +387,6 @@ export default function DashboardPage() {
 
           {/* Sidebar */}
           <div ref={sidebarRef} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Điểm danh hàng ngày */}
-            <DailyCheckin summary={checkin} onChecked={setCheckin} />
-
             {/* SRS widget */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 20,
               border: `1.5px solid ${srsStats.due > 0 ? C.red + "44" : C.border}` }}>
