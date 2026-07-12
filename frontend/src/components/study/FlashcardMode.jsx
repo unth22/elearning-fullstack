@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { speak, shuffle } from "./helpers";
+import { C } from "../../styles/theme";
 
 export default function FlashcardMode({ vocab, accentColor }) {
   const [idx, setIdx] = useState(0);
-  const [flipped, setFlipped] = useState(false);
   const [known, setKnown] = useState(new Set());
   const [deck, setDeck] = useState(vocab);
 
@@ -13,14 +13,12 @@ export default function FlashcardMode({ vocab, accentColor }) {
 
   const next = (k) => {
     if (k) setKnown((prev) => new Set([...prev, card.zh]));
-    setFlipped(false);
-    setTimeout(() => setIdx((i) => (i + 1) % deck.length), 150);
+    setIdx((i) => (i + 1) % deck.length);
   };
 
   const reset = () => {
     setDeck(shuffle(vocab));
     setIdx(0);
-    setFlipped(false);
     setKnown(new Set());
   };
 
@@ -37,53 +35,36 @@ export default function FlashcardMode({ vocab, accentColor }) {
         <span className="text-emerald-600 text-[13px]">✓ {known.size}</span>
       </div>
 
-      <div onClick={() => setFlipped((f) => !f)} className="w-[min(440px,100%)] h-[340px] cursor-pointer select-none" style={{ perspective: 1200 }}>
-        <div
-          className="relative w-full h-full transition-transform duration-[450ms]"
-          style={{ transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-        >
-          {/* Mặt trước — chỉ chữ Hán */}
-          <div
-            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.08)]"
-            style={{ backfaceVisibility: "hidden", background: "#fff", border: `2px solid ${accentColor}33` }}
-          >
-            <div className="text-7xl font-serif text-gray-900 leading-tight">{card.zh}</div>
-            <button
-              onClick={(e) => { e.stopPropagation(); speak(card.zh); }}
-              className="mt-6 bg-transparent rounded-full px-4 py-1.5 text-[13px]"
-              style={{ border: `1px solid ${accentColor}66`, color: accentColor }}
-            >🔊 Nghe</button>
-            <div className="absolute bottom-3.5 text-gray-400 text-xs">Nhấn để lật ↓</div>
-          </div>
+      <div className="w-[min(480px,100%)] rounded-[24px] px-8 py-9"
+        style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, boxShadow: "0 12px 40px rgba(0,0,0,.25)" }}>
+        <div className="leading-tight" style={{ fontFamily: C.hanzi, color: "#fff", fontSize: 56 }}>{card.zh}</div>
+        <div className="text-lg italic mt-3" style={{ color: C.gold }}>{card.pinyin}</div>
+        <div className="text-xl font-bold mt-2" style={{ color: "#fff" }}>{card.vi}</div>
+        {card.en && <div className="text-sm mt-1" style={{ color: "rgba(255,255,255,.45)" }}>{card.en}</div>}
 
-          {/* Mặt sau — pinyin, nghĩa Việt, tiếng Anh, câu ví dụ */}
-          <div
-            className="absolute inset-0 rounded-[20px] flex flex-col items-center justify-center gap-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.08)] px-6 py-5 overflow-y-auto"
-            style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: "#F9FAFB", border: `2px solid ${accentColor}66` }}
-          >
-            <div className="font-mono text-sm" style={{ color: accentColor }}>{card.pinyin}</div>
-            <div className="text-2xl text-gray-900 font-bold text-center">{card.vi}</div>
-            {card.en && <div className="text-sm text-gray-400">{card.en}</div>}
-            <div className="flex gap-1.5 mt-1 flex-wrap justify-center">
-              {(card.tags || []).map((t) => (
-                <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]" style={{ background: accentColor + "18", color: accentColor }}>{t}</span>
-              ))}
-            </div>
-
-            {card.example_zh && (
-              <div className="w-full mt-2.5 pt-2.5 border-t border-gray-200 text-center">
-                <div className="text-base font-serif text-gray-900 leading-snug">{card.example_zh}</div>
-                <div className="font-mono text-xs text-gray-500 mt-1">{card.example_pinyin}</div>
-                <div className="text-xs text-gray-400 mt-1">{card.example_vi}</div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); speak(card.example_zh); }}
-                  className="mt-2 bg-transparent rounded-full px-3 py-1 text-[11px]"
-                  style={{ border: `1px solid ${accentColor}44`, color: accentColor }}
-                >🔊 Nghe câu</button>
-              </div>
-            )}
+        {(card.tags || []).length > 0 && (
+          <div className="flex gap-1.5 mt-3 flex-wrap">
+            {card.tags.map((t) => (
+              <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]"
+                style={{ background: "rgba(255,255,255,.1)", color: "rgba(255,255,255,.7)" }}>{t}</span>
+            ))}
           </div>
-        </div>
+        )}
+
+        {card.example_zh && (
+          <>
+            <div className="my-5" style={{ borderTop: "1px solid rgba(255,255,255,.14)" }} />
+            <div className="text-lg leading-snug" style={{ fontFamily: C.hanzi, color: "#fff" }}>{card.example_zh}</div>
+            <div className="text-sm mt-1.5" style={{ color: "rgba(255,255,255,.5)" }}>{card.example_pinyin}</div>
+            <div className="text-sm italic mt-1" style={{ color: "rgba(255,255,255,.65)" }}>{card.example_vi}</div>
+          </>
+        )}
+
+        <button
+          onClick={() => speak(card.example_zh || card.zh)}
+          className="mt-5 rounded-full px-4 py-2 text-sm font-bold"
+          style={{ background: "rgba(255,255,255,.12)", color: "#fff", border: "none", cursor: "pointer" }}
+        >🔊 Nghe câu</button>
       </div>
 
       <div className="flex gap-3">

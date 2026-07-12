@@ -1,6 +1,6 @@
 import Highlightable from "./Highlightable";
 
-export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote, onUpdateNote }) {
+export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote, onUpdateNote, dark = false }) {
   const modules = course?.intro_content?.modules;
 
   if (!modules || !modules.length) {
@@ -32,18 +32,19 @@ export default function LectureMode({ course, moduleIndex = 0, accentColor, note
         <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: accentColor }}>
           {m.title}
         </div>
-        <div className="h-px flex-1 bg-gray-200" />
+        <div className="h-px flex-1" style={{ background: dark ? "#2A2C3D" : "#E5E7EB" }} />
       </div>
       <Highlightable as="h2" text={m.subtitle} notes={notes} onSave={onSaveNote} onUpdate={onUpdateNote}
-        className="text-xl font-bold text-gray-900 mb-4 block" />
+        className="text-xl font-bold mb-4 block" style={{ color: dark ? "#EDEDF2" : "#111827" }} />
       <div className="flex flex-wrap gap-2 mb-8">
         {(m.topics || []).map((t, j) => (
           <Highlightable key={j} text={t} notes={notes} onSave={onSaveNote} onUpdate={onUpdateNote}
-            className="text-sm text-gray-600 bg-gray-100 rounded-lg px-3 py-1.5 inline-block" />
+            className="text-sm rounded-lg px-3 py-1.5 inline-block"
+            style={{ color: dark ? "#C4C4D6" : "#4B5563", background: dark ? "#22243380" : "#F3F4F6" }} />
         ))}
       </div>
 
-      <p className="text-xs text-gray-400">
+      <p className="text-xs" style={{ color: dark ? "#6E6E85" : "#9CA3AF" }}>
         💡 Mẹo: bôi đen chữ trong bài giảng để tô màu highlight hoặc lưu vào ghi chú (icon 📝 góc dưới bên phải).
       </p>
     </div>

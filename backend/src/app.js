@@ -21,6 +21,7 @@ const moduleProgressRoutes = require("./routes/moduleProgressRoutes");
 const phraseRoutes = require("./routes/phraseRoutes");
 const dialogueRoutes = require("./routes/dialogueRoutes");
 const readingRoutes = require("./routes/readingRoutes");
+const checkinRoutes = require("./routes/checkinRoutes");
 
 const app = express();
 
@@ -49,6 +50,7 @@ app.use("/api", moduleProgressRoutes);
 app.use("/api", phraseRoutes);
 app.use("/api", dialogueRoutes);
 app.use("/api", readingRoutes);
+app.use("/api", checkinRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });

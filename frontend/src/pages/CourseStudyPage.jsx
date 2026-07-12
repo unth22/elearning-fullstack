@@ -59,6 +59,11 @@ export default function CourseStudyPage() {
   const [showNotes, setShowNotes] = useState(false);
   const [moduleProgress, setModuleProgress] = useState({}); // { [moduleIndex]: Set(stepId) }
   const [enrolledAt, setEnrolledAt] = useState(null);
+  const [dark, setDark] = useState(() => localStorage.getItem("studyTheme") === "dark");
+
+  useEffect(() => {
+    localStorage.setItem("studyTheme", dark ? "dark" : "light");
+  }, [dark]);
 
   useEffect(() => {
     setLoading(true);
@@ -140,6 +145,12 @@ export default function CourseStudyPage() {
   const accentColor = course.accent_color || "#C0392B";
   const modules = course.intro_content?.modules || [];
 
+  // Bảng màu chế độ tối cho khung trang (sidebar/breadcrumb/nền chính) —
+  // mặt trời = sáng (mặc định), mặt trăng = tối, chỉ đổi ở đây và LectureMode.
+  const theme = dark
+    ? { pageBg: "#12131C", sidebarBg: "#181A26", border: "#2A2C3D", text1: "#EDEDF2", text2: "#9A9AB0", text3: "#6E6E85" }
+    : { pageBg: "#fff", sidebarBg: "#F9FAFB", border: "#E5E7EB", text1: "#111827", text2: "#374151", text3: "#9CA3AF" };
+
   // Nội dung có module_index (bài nào) chỉ hiện đúng bài đang học; nội dung
   // module_index = null (khóa học cũ, chưa tách theo bài) vẫn hiện xuyên suốt khóa.
   const inModuleScope = (row) => row.module_index === null || row.module_index === undefined || row.module_index === moduleIndex;
@@ -172,25 +183,26 @@ export default function CourseStudyPage() {
   const inModuleFlow = modules.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen" style={{ background: theme.pageBg }}>
       {/* Sidebar */}
       <div
-        className={`${sidebarOpen ? "w-[240px] min-w-[240px]" : "w-0 min-w-0"} bg-gray-50 border-r border-gray-200 transition-all overflow-hidden flex-shrink-0 flex flex-col`}
+        className={`${sidebarOpen ? "w-[240px] min-w-[240px]" : "w-0 min-w-0"} border-r transition-all overflow-hidden flex-shrink-0 flex flex-col`}
+        style={{ background: theme.sidebarBg, borderColor: theme.border }}
       >
         <div className="px-4 pt-5 pb-3">
-          <Link to="/dashboard" className="bg-transparent border-none text-gray-400 text-[13px] mb-4 flex items-center gap-1.5 no-underline hover:text-gray-600">
+          <Link to="/dashboard" className="bg-transparent border-none text-[13px] mb-4 flex items-center gap-1.5 no-underline" style={{ color: theme.text3 }}>
             ← Về Dashboard
           </Link>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xl">{course.icon}</span>
-            <div className="text-[15px] font-bold text-gray-900 leading-tight">{course.title}</div>
+            <div className="text-[15px] font-bold leading-tight" style={{ color: theme.text1 }}>{course.title}</div>
           </div>
-          <div className="text-gray-400 text-xs">{modules.length > 0 ? `${scopedVocab.length} từ vựng (bài này)` : `${vocab.length} từ vựng`}</div>
+          <div className="text-xs" style={{ color: theme.text3 }}>{modules.length > 0 ? `${scopedVocab.length} từ vựng (bài này)` : `${vocab.length} từ vựng`}</div>
         </div>
         <div className="flex-1 overflow-y-auto px-2.5 pb-5">
           {modules.length > 0 && (
             <>
-              <div className="text-[11px] text-gray-400 tracking-widest font-semibold px-1.5 mt-3 mb-2">BÀI GIẢNG</div>
+              <div className="text-[11px] tracking-widest font-semibold px-1.5 mt-3 mb-2" style={{ color: theme.text3 }}>BÀI GIẢNG</div>
               {modules.map((m, i) => (
                 <button
                   key={i}
@@ -199,14 +211,14 @@ export default function CourseStudyPage() {
                   style={{
                     background: mode === "lecture" && moduleIndex === i ? accentColor + "16" : "transparent",
                     border: `1px solid ${mode === "lecture" && moduleIndex === i ? accentColor + "55" : "transparent"}`,
-                    color: mode === "lecture" && moduleIndex === i ? accentColor : "#374151",
+                    color: mode === "lecture" && moduleIndex === i ? accentColor : theme.text2,
                   }}
                 >
                   <div className="text-[10px] font-bold tracking-wider opacity-70">{m.title}</div>
                   <div className="leading-snug">{m.subtitle}</div>
                 </button>
               ))}
-              <div className="text-[11px] text-gray-400 tracking-widest font-semibold px-1.5 mt-4 mb-2">LUYỆN TẬP</div>
+              <div className="text-[11px] tracking-widest font-semibold px-1.5 mt-4 mb-2" style={{ color: theme.text3 }}>LUYỆN TẬP</div>
             </>
           )}
           {PRACTICE_MODES.map((m) => (
@@ -217,7 +229,7 @@ export default function CourseStudyPage() {
               style={{
                 background: mode === m.id ? accentColor + "16" : "transparent",
                 border: `1px solid ${mode === m.id ? accentColor + "55" : "transparent"}`,
-                color: mode === m.id ? accentColor : "#374151",
+                color: mode === m.id ? accentColor : theme.text2,
               }}
             >
               <span>{m.icon}</span> {m.label}
@@ -229,18 +241,24 @@ export default function CourseStudyPage() {
       {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Breadcrumb */}
-        <div className="px-5 py-4 border-b border-gray-200 flex items-center gap-3 bg-white">
-          <button onClick={() => setSidebarOpen((o) => !o)} className="bg-transparent border-none text-gray-400 text-lg">☰</button>
+        <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: theme.border, background: theme.pageBg }}>
+          <button onClick={() => setSidebarOpen((o) => !o)} className="bg-transparent border-none text-lg" style={{ color: theme.text3 }}>☰</button>
           <div className="flex-1 text-sm">
-            <Link to="/dashboard" className="text-gray-400 no-underline hover:text-gray-600">{course.title}</Link>
-            <span className="text-gray-300 mx-2">›</span>
-            <span className="text-gray-900 font-semibold">{currentLabel}</span>
+            <Link to="/dashboard" className="no-underline" style={{ color: theme.text3 }}>{course.title}</Link>
+            <span className="mx-2" style={{ color: theme.text3 }}>›</span>
+            <span className="font-semibold" style={{ color: theme.text1 }}>{currentLabel}</span>
           </div>
           <button
             onClick={() => scopedVocab[0] && speak(scopedVocab[0].zh)}
             className="bg-transparent rounded-full px-3.5 py-1.5 text-[13px]"
             style={{ border: `1px solid ${accentColor}44`, color: accentColor }}
           >🔊 TTS</button>
+          <button
+            onClick={() => setDark((d) => !d)}
+            title={dark ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
+            className="rounded-full text-base"
+            style={{ width: 34, height: 34, border: `1px solid ${theme.border}`, background: "transparent", cursor: "pointer" }}
+          >{dark ? "🌙" : "☀️"}</button>
         </div>
 
         {/* Thanh tiến trình trong module: bài giảng → trắc nghiệm → flashcard → cụm từ →
@@ -254,11 +272,11 @@ export default function CourseStudyPage() {
           />
         )}
 
-        <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
+        <div className="flex-1 overflow-y-auto py-7 px-5" style={{ background: theme.pageBg }}>
           {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
-          {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} />}
-          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} />}
-          {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} />}
+          {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} dark={dark} />}
+          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} />}
+          {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
             ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} key={`rc-${moduleIndex}`} />

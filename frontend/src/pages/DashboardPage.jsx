@@ -11,6 +11,8 @@ import { MODULE_STEPS } from "../components/study/ModuleProgressBar";
 import { C, Pill, Btn, PBar } from "../styles/theme";
 import QuickLookup from "../components/QuickLookup";
 import GoalTracker from "../components/GoalTracker";
+import DailyCheckin from "../components/DailyCheckin";
+import { getMyCheckin } from "../services/checkinService";
 
 function greeting() {
   const h = new Date().getHours();
@@ -32,18 +34,20 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [courseLoading, setCourseLoading] = useState(false);
   const [error, setError] = useState("");
+  const [checkin, setCheckin] = useState(null);
   const sidebarRef = useRef(null);
   const [roadmapMaxHeight, setRoadmapMaxHeight] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([getMyEnrollments(), getMyActivity()])
-      .then(([enrs, act]) => {
+    Promise.all([getMyEnrollments(), getMyActivity(), getMyCheckin().catch(() => null)])
+      .then(([enrs, act, ci]) => {
         if (cancelled) return;
         if (!enrs.length) { navigate("/courses"); return; }
         setEnrollments(enrs);
         setSelectedCourseId(enrs[0].course_id);
         setActivity(act);
+        setCheckin(ci);
       })
       .catch((err) => setError(err.message))
       .finally(() => !cancelled && setLoading(false));
@@ -381,6 +385,9 @@ export default function DashboardPage() {
 
           {/* Sidebar */}
           <div ref={sidebarRef} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Điểm danh hàng ngày */}
+            <DailyCheckin summary={checkin} onChecked={setCheckin} />
+
             {/* SRS widget */}
             <div style={{ background: "#fff", borderRadius: 18, padding: 20,
               border: `1.5px solid ${srsStats.due > 0 ? C.red + "44" : C.border}` }}>
