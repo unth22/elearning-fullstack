@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getCourseById, getVocabulary, getGrammar, getSentences } from "../services/courseService";
 import { speak } from "../components/study/helpers";
 import FlashcardMode from "../components/study/FlashcardMode";
@@ -19,6 +19,7 @@ import NotesPanel from "../components/study/NotesPanel";
 import TrialExpiredNotice from "../components/study/TrialExpiredNotice";
 import { getNotesByCourse, createNote } from "../services/noteService";
 import { getMyEnrollments } from "../services/enrollmentService";
+import { getModuleProgress, markModuleStep } from "../services/moduleProgressService";
 
 const TRIAL_DAYS = 3;
 
@@ -38,14 +39,15 @@ const PRACTICE_MODES = [
 
 export default function CourseStudyPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [course, setCourse] = useState(null);
   const [vocab, setVocab] = useState([]);
   const [grammar, setGrammar] = useState([]);
   const [sentences, setSentences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("lecture");
-  const [moduleIndex, setModuleIndex] = useState(0);
+  const [mode, setMode] = useState(searchParams.get("mode") || "lecture");
+  const [moduleIndex, setModuleIndex] = useState(Number(searchParams.get("module")) || 0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notes, setNotes] = useState([]);
   const [showDictionary, setShowDictionary] = useState(false);
@@ -58,18 +60,27 @@ export default function CourseStudyPage() {
     Promise.all([
       getCourseById(id), getVocabulary(id), getGrammar(id), getSentences(id),
       getNotesByCourse(id).catch(() => []), getMyEnrollments().catch(() => []),
+      getModuleProgress(id).catch(() => []),
     ])
-      .then(([c, v, g, s, n, enrollments]) => {
+      .then(([c, v, g, s, n, enrollments, moduleProgressRows]) => {
         setCourse(c); setVocab(v); setGrammar(g); setSentences(s); setNotes(n);
         const enr = enrollments.find((e) => String(e.course_id) === String(id));
         setEnrolledAt(enr?.enrolled_at || null);
+        const hydrated = {};
+        for (const row of moduleProgressRows) {
+          const set = hydrated[row.module_index] || new Set();
+          set.add(row.step_id);
+          hydrated[row.module_index] = set;
+        }
+        setModuleProgress(hydrated);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
 
   // Đánh dấu bước hiện tại là đã xem, bất kể đến bằng cách nào (tải trang lần đầu,
-  // chọn module, bấm thanh tiến trình, hay bấm mục luyện tập ở sidebar).
+  // chọn module, bấm thanh tiến trình, hay bấm mục luyện tập ở sidebar). Lưu cả
+  // vào DB (module_progress) để Dashboard hiển thị lộ trình chính xác.
   useEffect(() => {
     if (!course) return;
     const mods = course.intro_content?.modules || [];
@@ -79,9 +90,10 @@ export default function CourseStudyPage() {
       const set = new Set(prev[moduleIndex] || []);
       if (set.has(mode)) return prev;
       set.add(mode);
+      markModuleStep(id, moduleIndex, mode).catch((err) => console.error("Lỗi lưu tiến độ module:", err.message));
       return { ...prev, [moduleIndex]: set };
     });
-  }, [course, mode, moduleIndex]);
+  }, [course, mode, moduleIndex, id]);
 
   async function handleSaveNote({ selectedText, color, note }) {
     try {

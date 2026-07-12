@@ -1,4 +1,4 @@
-const { enroll, getEnrollmentsByUser, getLatestEnrollment } = require("../models/enrollmentModel");
+const { enroll, getEnrollmentsByUser, getLatestEnrollment, setGoal } = require("../models/enrollmentModel");
 const { getCourseById } = require("../models/courseModel");
 
 async function enrollHandler(req, res) {
@@ -37,4 +37,19 @@ async function getMyLatestEnrollment(req, res) {
   }
 }
 
-module.exports = { enrollHandler, listMyEnrollments, getMyLatestEnrollment };
+async function setMyGoal(req, res) {
+  try {
+    const { courseId, targetDays } = req.body;
+    if (!courseId || !targetDays) {
+      return res.status(400).json({ message: "Thiếu khóa học hoặc số ngày mục tiêu." });
+    }
+    const enrollment = await setGoal(req.user.userId, courseId, targetDays);
+    if (!enrollment) return res.status(404).json({ message: "Không tìm thấy khóa học đã đăng ký." });
+    return res.status(200).json(enrollment);
+  } catch (err) {
+    console.error("Lỗi setMyGoal:", err.message);
+    return res.status(500).json({ message: "Không thể lưu mục tiêu." });
+  }
+}
+
+module.exports = { enrollHandler, listMyEnrollments, getMyLatestEnrollment, setMyGoal };

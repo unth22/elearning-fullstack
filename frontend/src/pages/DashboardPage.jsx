@@ -5,42 +5,18 @@ import { getMyEnrollments } from "../services/enrollmentService";
 import { getMyProgress, setLessonProgress } from "../services/progressService";
 import { getSrsStats } from "../services/srsService";
 import { getMyActivity } from "../services/activityService";
+import { getCourseById } from "../services/courseService";
+import { getModuleProgress } from "../services/moduleProgressService";
+import { MODULE_STEPS } from "../components/study/ModuleProgressBar";
 import { C, Pill, Btn, PBar } from "../styles/theme";
 import QuickLookup from "../components/QuickLookup";
+import GoalTracker from "../components/GoalTracker";
 
 function greeting() {
   const h = new Date().getHours();
   if (h < 11) return "Chào buổi sáng ☀️";
   if (h < 18) return "Chào buổi chiều 🌤️";
   return "Chào buổi tối 🌙";
-}
-
-function buildTodaySchedule(srsDue) {
-  return [
-    { icon: "🎬", label: "Bài giảng", tasks: [
-      "Xem tiếp bài giảng module hiện tại",
-      "Ghi chú lại từ vựng/ngữ pháp mới gặp",
-    ] },
-    { icon: "🃏", label: "Flashcard", tasks: srsDue > 0
-      ? [`${srsDue} thẻ cần ôn hôm nay`, "Ôn lại từ vựng bằng Flashcard"]
-      : ["Đã ôn hết thẻ hôm nay ✅", "Học thêm từ vựng mới nếu muốn"] },
-    { icon: "✏️", label: "Trắc nghiệm", tasks: [
-      "Làm bài trắc nghiệm kiểm tra từ đã học",
-      "Xem lại các câu đã làm sai",
-    ] },
-    { icon: "📝", label: "Ngữ pháp", tasks: [
-      "Ôn lại 1 cấu trúc ngữ pháp mới",
-      "Đặt câu ví dụ áp dụng thực tế",
-    ] },
-    { icon: "🎧", label: "Nghe chép", tasks: [
-      "Nghe chép 1 đoạn hội thoại ngắn",
-      "Tự chữa câu sai, không xem đáp án trước",
-    ] },
-    { icon: "🎤", label: "Shadowing", tasks: [
-      "Luyện shadowing theo câu mẫu",
-      "Luyện phát âm 4 thanh điệu chuẩn",
-    ] },
-  ];
 }
 
 export default function DashboardPage() {
@@ -51,6 +27,8 @@ export default function DashboardPage() {
   const [progress, setProgress] = useState([]);
   const [srsStats, setSrsStats] = useState({ due: 0, learned: 0 });
   const [activity, setActivity] = useState({ streak: 0, week: [] });
+  const [courseDetail, setCourseDetail] = useState(null);
+  const [moduleProgressRows, setModuleProgressRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [courseLoading, setCourseLoading] = useState(false);
   const [error, setError] = useState("");
@@ -74,11 +52,16 @@ export default function DashboardPage() {
     if (!selectedCourseId) return;
     let cancelled = false;
     setCourseLoading(true);
-    Promise.all([getMyProgress(selectedCourseId), getSrsStats(selectedCourseId)])
-      .then(([p, s]) => {
+    Promise.all([
+      getMyProgress(selectedCourseId), getSrsStats(selectedCourseId),
+      getCourseById(selectedCourseId), getModuleProgress(selectedCourseId).catch(() => []),
+    ])
+      .then(([p, s, c, mp]) => {
         if (cancelled) return;
         setProgress(p);
         setSrsStats(s);
+        setCourseDetail(c);
+        setModuleProgressRows(mp);
       })
       .catch((err) => setError(err.message))
       .finally(() => !cancelled && setCourseLoading(false));
@@ -107,15 +90,58 @@ export default function DashboardPage() {
     );
   }
 
+  const modules = courseDetail?.intro_content?.modules || [];
+  const hasModules = modules.length > 0;
+
+  // Gộp danh sách bước đã hoàn thành theo từng module thành Set để tra cứu nhanh.
+  const moduleStepsDone = {};
+  for (const row of moduleProgressRows) {
+    const set = moduleStepsDone[row.module_index] || new Set();
+    set.add(row.step_id);
+    moduleStepsDone[row.module_index] = set;
+  }
+  function stepsDoneCount(i) { return moduleStepsDone[i]?.size || 0; }
+  function moduleStatus(i) {
+    const done = stepsDoneCount(i);
+    if (done >= MODULE_STEPS.length) return "done";
+    if (done > 0) return "in-progress";
+    return "not-started";
+  }
+  function nextStep(i) {
+    const done = moduleStepsDone[i] || new Set();
+    return MODULE_STEPS.find((s) => !done.has(s.id)) || MODULE_STEPS[0];
+  }
+
+  const doneModuleCount = modules.filter((_, i) => moduleStatus(i) === "done").length;
+  const currentModuleIdx = hasModules ? modules.findIndex((_, i) => moduleStatus(i) !== "done") : -1;
+  const moduleProgressPercent = hasModules ? Math.round((doneModuleCount / modules.length) * 100) : 0;
+
   const totalLessons = progress.length;
   const completedCount = progress.filter((p) => p.is_completed).length;
   const continueLesson = progress.find((p) => !p.is_completed) || null;
 
+  const overallProgressPercent = hasModules
+    ? moduleProgressPercent
+    : (totalLessons ? Math.round((completedCount / totalLessons) * 100) : 0);
+
+  const heroTitle = hasModules
+    ? (currentModuleIdx >= 0 ? modules[currentModuleIdx].subtitle : "Xem lại nội dung khóa học")
+    : (continueLesson ? continueLesson.title : "Xem lại nội dung khóa học");
+  const heroDone = hasModules ? doneModuleCount === modules.length : (totalLessons > 0 && completedCount === totalLessons);
+  const heroLink = hasModules && currentModuleIdx >= 0
+    ? `/course/${enrollment.course_id}?module=${currentModuleIdx}&mode=${nextStep(currentModuleIdx).id}`
+    : `/course/${enrollment.course_id}`;
+
   const tip = srsStats.due > 0
     ? `Bạn có ${srsStats.due} thẻ từ vựng cần ôn hôm nay — ôn ngay để không quên nhé!`
-    : continueLesson
-      ? `Bạn còn ${totalLessons - completedCount} bài chưa hoàn thành trong khóa "${enrollment.title}" — tiếp tục học nhé!`
-      : `Bạn đã hoàn thành hết nội dung khóa học này! Hãy khám phá khóa học khác.`;
+    : hasModules && currentModuleIdx >= 0
+      ? `Hôm nay hãy tiếp tục "${modules[currentModuleIdx].subtitle}" — bước tiếp theo: ${nextStep(currentModuleIdx).icon} ${nextStep(currentModuleIdx).label}.`
+      : !hasModules && continueLesson
+        ? `Bạn còn ${totalLessons - completedCount} bài chưa hoàn thành trong khóa "${enrollment.title}" — tiếp tục học nhé!`
+        : `Bạn đã hoàn thành hết nội dung khóa học này! Hãy khám phá khóa học khác.`;
+
+  const todayIdx = (new Date().getDay() + 6) % 7; // T2=0 ... CN=6
+  const wateredToday = !!activity.week?.[todayIdx]?.active;
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: C.body }}>
@@ -214,51 +240,22 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Lịch học hôm nay — gợi ý theo từng kỹ năng cho khóa đang chọn */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, marginBottom: 10, letterSpacing: .6 }}>
-            LỊCH HỌC HÔM NAY
-          </div>
-          <div style={{ display: "flex", gap: 14, overflowX: "auto", paddingBottom: 6 }}>
-            {buildTodaySchedule(srsStats.due).map((s) => (
-              <div key={s.label} onClick={() => navigate(`/course/${enrollment.course_id}`)}
-                style={{ minWidth: 220, flexShrink: 0, background: "#fff", borderRadius: 16,
-                  border: `1px solid ${C.border}`, padding: 16, cursor: "pointer" }}>
-                <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{s.icon} {s.label}</div>
-                <div style={{ fontSize: 12, color: C.t3, marginBottom: 2 }}>
-                  Khóa học: <span style={{ color: enrollment.accent_color || C.red, fontWeight: 600 }}>{enrollment.title}</span>
-                </div>
-                <div style={{ fontSize: 11, color: C.t3, marginBottom: 12 }}>Hàng ngày</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  {s.tasks.map((t, i) => (
-                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 2, marginTop: 4, flexShrink: 0,
-                        background: enrollment.accent_color || C.red }} />
-                      <span style={{ fontSize: 12.5, color: C.t2, lineHeight: 1.5 }}>{t}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, alignItems: "start",
           opacity: courseLoading ? 0.5 : 1, transition: "opacity .15s", pointerEvents: courseLoading ? "none" : "auto" }}>
           {/* Main column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Continue learning */}
-            <div onClick={() => navigate(`/course/${enrollment.course_id}`)} style={{
+            <div onClick={() => navigate(heroLink)} style={{
               background: C.ink, borderRadius: 20, padding: 24, cursor: "pointer",
               position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", right: -14, top: -14, fontSize: 90, opacity: .07 }}>
                 {enrollment.icon}
               </div>
               <Pill color={C.gold} style={{ marginBottom: 10 }}>
-                {continueLesson ? "TIẾP TỤC HỌC" : "ĐÃ HOÀN THÀNH"}
+                {heroDone ? "ĐÃ HOÀN THÀNH" : "TIẾP TỤC HỌC"}
               </Pill>
               <div style={{ fontSize: 19, fontWeight: 700, color: "#fff", marginBottom: 4 }}>
-                {continueLesson ? continueLesson.title : "Xem lại nội dung khóa học"}
+                {heroTitle}
               </div>
               <div style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginBottom: 14,
                 display: "flex", alignItems: "center", gap: 8 }}>
@@ -272,47 +269,87 @@ export default function DashboardPage() {
                   ⋯
                 </Link>
               </div>
-              <PBar value={completedCount} max={totalLessons || 1} color={C.red} h={6} />
+              <PBar value={hasModules ? doneModuleCount : completedCount} max={hasModules ? (modules.length || 1) : (totalLessons || 1)} color={C.red} h={6} />
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,.4)" }}>
-                  {completedCount}/{totalLessons} bài hoàn thành
+                  {hasModules ? `${doneModuleCount}/${modules.length} module hoàn thành` : `${completedCount}/${totalLessons} bài hoàn thành`}
                 </span>
                 <span style={{ fontSize: 14, fontWeight: 700, color: C.gold }}>Học tiếp →</span>
               </div>
             </div>
 
-            {/* Curriculum — real lessons */}
+            {/* Lộ trình — theo module nếu khóa có, ngược lại theo bài học cũ */}
             <div style={{ background: "#fff", borderRadius: 18, border: `1px solid ${C.border}`, overflow: "hidden" }}>
               <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.border}`,
                 fontSize: 13, fontWeight: 700, color: C.t3, letterSpacing: .6 }}>
                 LỘ TRÌNH CỦA BẠN
               </div>
-              {totalLessons === 0 && (
-                <div style={{ padding: 20, color: C.t3, fontSize: 14 }}>
-                  Khóa học này chưa có bài học nào.
-                </div>
-              )}
-              {progress.map((l, i) => (
-                <div key={l.lesson_id} style={{ padding: "14px 20px",
-                  borderBottom: i < progress.length - 1 ? `1px solid ${C.border}` : "none",
-                  display: "flex", alignItems: "center", gap: 14 }}>
-                  <button onClick={() => toggleLesson(l.lesson_id, l.is_completed)} style={{
-                    width: 34, height: 34, borderRadius: 10, border: "none", cursor: "pointer",
-                    background: l.is_completed ? C.green : C.bg,
-                    color: l.is_completed ? "#fff" : C.t3,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: 13 }}>
-                    {l.is_completed ? "✓" : i + 1}
-                  </button>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700 }}>{l.title}</div>
-                    <div style={{ fontSize: 12, color: C.t3 }}>
-                      {l.is_completed ? "Đã hoàn thành" : "Chưa hoàn thành"}
+
+              {hasModules ? modules.map((m, i) => {
+                const status = moduleStatus(i);
+                const done = stepsDoneCount(i);
+                return (
+                  <Link key={i} to={`/course/${enrollment.course_id}?module=${i}&mode=${nextStep(i).id}`}
+                    style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+                    <div style={{ padding: "14px 20px",
+                      borderBottom: i < modules.length - 1 ? `1px solid ${C.border}` : "none",
+                      display: "flex", alignItems: "center", gap: 14 }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                        background: status === "done" ? C.green : status === "in-progress" ? C.goldSoft : C.bg,
+                        color: status === "done" ? "#fff" : status === "in-progress" ? C.gold : C.t3,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontWeight: 800, fontSize: 13 }}>
+                        {status === "done" ? "✓" : i + 1}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{m.subtitle}</div>
+                        {status === "in-progress" ? (
+                          <>
+                            <div style={{ fontSize: 11.5, color: C.t3, marginTop: 2, marginBottom: 5 }}>
+                              Tiếp tục: {nextStep(i).icon} {nextStep(i).label}
+                            </div>
+                            <PBar value={done} max={MODULE_STEPS.length} color={enrollment.accent_color || C.red} h={5} />
+                          </>
+                        ) : (
+                          <div style={{ fontSize: 12, color: C.t3 }}>
+                            {status === "done" ? "Đã hoàn thành" : "Chưa bắt đầu"}
+                          </div>
+                        )}
+                      </div>
+                      {status === "done" && <Pill color={C.green}>Hoàn thành</Pill>}
                     </div>
-                  </div>
-                  {l.is_completed && <Pill color={C.green}>Hoàn thành</Pill>}
-                </div>
-              ))}
+                  </Link>
+                );
+              }) : (
+                <>
+                  {totalLessons === 0 && (
+                    <div style={{ padding: 20, color: C.t3, fontSize: 14 }}>
+                      Khóa học này chưa có bài học nào.
+                    </div>
+                  )}
+                  {progress.map((l, i) => (
+                    <div key={l.lesson_id} style={{ padding: "14px 20px",
+                      borderBottom: i < progress.length - 1 ? `1px solid ${C.border}` : "none",
+                      display: "flex", alignItems: "center", gap: 14 }}>
+                      <button onClick={() => toggleLesson(l.lesson_id, l.is_completed)} style={{
+                        width: 34, height: 34, borderRadius: 10, border: "none", cursor: "pointer",
+                        background: l.is_completed ? C.green : C.bg,
+                        color: l.is_completed ? "#fff" : C.t3,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontWeight: 800, fontSize: 13 }}>
+                        {l.is_completed ? "✓" : i + 1}
+                      </button>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{l.title}</div>
+                        <div style={{ fontSize: 12, color: C.t3 }}>
+                          {l.is_completed ? "Đã hoàn thành" : "Chưa hoàn thành"}
+                        </div>
+                      </div>
+                      {l.is_completed && <Pill color={C.green}>Hoàn thành</Pill>}
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
 
@@ -324,8 +361,8 @@ export default function DashboardPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                 <span style={{ fontSize: 26 }}>🃏</span>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>Ôn tập SRS</div>
-                  <div style={{ fontSize: 12, color: C.t3 }}>Hệ thống ghi nhớ thông minh</div>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>Ôn tập từ vựng đã học</div>
+                  <div style={{ fontSize: 12, color: C.t3 }}>Ôn đúng lúc để nhớ lâu dài</div>
                 </div>
               </div>
               {srsStats.due > 0 ? (
@@ -347,13 +384,22 @@ export default function DashboardPage() {
               )}
             </div>
 
+            {/* Đặt mục tiêu hoàn thành khóa học */}
+            <GoalTracker
+              enrollment={enrollment}
+              progressPercent={overallProgressPercent}
+              wateredToday={wateredToday}
+              onGoalSet={(updated) => setEnrollments((prev) => prev.map((e) =>
+                e.course_id === updated.course_id ? { ...e, ...updated } : e))}
+            />
+
             {/* Tra cứu nhanh từ vựng chuyên ngành */}
             <QuickLookup />
 
-            {/* Gợi ý — dựa trên dữ liệu thật, không giả lập AI chấm điểm */}
+            {/* Gợi ý — dựa trên dữ liệu thật (SRS đến hạn / module đang học), không giả lập */}
             <div style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, borderRadius: 18, padding: 20 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: C.gold, marginBottom: 10, letterSpacing: .6 }}>
-                💡 GỢI Ý CHO BẠN
+                💡 GỢI Ý LỊCH HỌC HÔM NAY
               </div>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,.8)", lineHeight: 1.7 }}>{tip}</p>
             </div>

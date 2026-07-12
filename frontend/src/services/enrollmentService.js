@@ -24,3 +24,14 @@ export async function getMyLatestEnrollment() {
   if (!res.ok) throw new Error("Không thể tải khóa học gần nhất.");
   return res.json();
 }
+
+export async function setEnrollmentGoal(courseId, targetDays) {
+  const res = await fetch(`${BASE_URL}/enrollments/goal`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ courseId, targetDays }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Không thể lưu mục tiêu.");
+  return data;
+}

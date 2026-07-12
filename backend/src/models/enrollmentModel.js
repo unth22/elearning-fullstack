@@ -33,4 +33,13 @@ async function getLatestEnrollment(userId) {
   return result.rows[0];
 }
 
-module.exports = { enroll, getEnrollmentsByUser, getLatestEnrollment };
+async function setGoal(userId, courseId, targetDays) {
+  const result = await pool.query(
+    `UPDATE enrollments SET target_days = $1, goal_set_at = NOW()
+     WHERE user_id = $2 AND course_id = $3 RETURNING *`,
+    [targetDays, userId, courseId]
+  );
+  return result.rows[0];
+}
+
+module.exports = { enroll, getEnrollmentsByUser, getLatestEnrollment, setGoal };
