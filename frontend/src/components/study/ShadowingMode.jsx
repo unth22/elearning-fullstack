@@ -71,12 +71,14 @@ function ScoreRing({ percent, size = 96 }) {
 
 export default function ShadowingMode({ sentences, accentColor, onComplete }) {
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | recorded | evaluated
+  const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | countdown | recording | recorded | evaluated
+  const [countdown, setCountdown] = useState(null);
   const [transcript, setTranscript] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [bestScores, setBestScores] = useState({}); // { [sentenceIdx]: bestPercent } — trong phiên học này
   const evaluated = useRef(new Set());
   const completedRef = useRef(false);
+  const countdownTimer = useRef(null);
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
 
@@ -88,24 +90,48 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
     setTimeout(() => setPhase("shadowing"), 3500);
   };
 
-  const startRecording = () => {
+  // Đếm ngược 3-2-1 trước khi mic thực sự bắt đầu nghe, để học viên có thời
+  // gian chuẩn bị hơi/tư thế miệng thay vì bị ghi âm ngay lập tức khi vừa bấm.
+  const beginCountdown = () => {
     if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
       alert("Trình duyệt không hỗ trợ nhận giọng nói. Hãy dùng Chrome.");
       return;
     }
+    setPhase("countdown");
+    let c = 3;
+    setCountdown(c);
+    countdownTimer.current = setInterval(() => {
+      c -= 1;
+      if (c <= 0) {
+        clearInterval(countdownTimer.current);
+        setCountdown(null);
+        actuallyRecord();
+      } else {
+        setCountdown(c);
+      }
+    }, 700);
+  };
+
+  const actuallyRecord = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const r = new SR();
     r.lang = "zh-CN"; r.continuous = false; r.interimResults = false;
     r.onresult = (e) => { setTranscript(e.results[0][0].transcript); setPhase("recorded"); };
     r.onerror = () => setPhase("recorded");
     r.start();
-    setPhase("shadowing");
+    setPhase("recording");
   };
 
-  const retry = () => { setPhase("ready"); setTranscript(""); };
-  const next = () => { setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); setAttempts(0); };
+  const retry = () => {
+    if (countdownTimer.current) clearInterval(countdownTimer.current);
+    setPhase("ready"); setTranscript(""); setCountdown(null);
+  };
+  const next = () => {
+    if (countdownTimer.current) clearInterval(countdownTimer.current);
+    setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); setAttempts(0); setCountdown(null);
+  };
 
-  const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", recorded: accentColor, evaluated: accentColor };
+  const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", countdown: "#E8B84B", recording: "#E74C3C", recorded: accentColor, evaluated: accentColor };
   const scored = phase === "evaluated" && transcript ? scorePronunciation(sentence.zh, transcript) : null;
   const bestScore = bestScores[idx];
 
@@ -131,7 +157,14 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
       <div className="bg-dem-nhat rounded-2xl p-7 mb-5" style={{ border: `2px solid ${phaseColors[phase]}44` }}>
         {phase === "ready" && <div className="text-chu-mo text-sm mb-3">Nhấn để bắt đầu nghe câu mẫu</div>}
         {phase === "listening" && <div className="text-[#E8B84B] text-sm mb-3">🎧 Đang phát âm... hãy nghe thật kỹ</div>}
-        {phase === "shadowing" && <div className="text-xanh-luc text-sm mb-3">🎤 Hãy nhại lại ngay bây giờ!</div>}
+        {phase === "shadowing" && <div className="text-xanh-luc text-sm mb-3">🎤 Sẵn sàng nhại lại thì bấm "Ghi âm"</div>}
+        {phase === "countdown" && (
+          <div className="mb-3">
+            <div className="text-4xl font-bold" style={{ color: "#E8B84B" }}>{countdown}</div>
+            <div className="text-[#E8B84B] text-sm mt-1">Chuẩn bị... sắp ghi âm</div>
+          </div>
+        )}
+        {phase === "recording" && <div className="text-[#E74C3C] text-sm mb-3 animate-pulse">🔴 Đang ghi âm — nói ngay bây giờ!</div>}
         {phase === "recorded" && <div className="text-sm mb-3" style={{ color: accentColor }}>🎙 Đã ghi âm xong — bấm "Đánh giá ghi âm" để chấm điểm</div>}
 
         {phase === "evaluated" && scored && (
@@ -191,7 +224,13 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
           </>
         )}
         {phase === "shadowing" && (
-          <button onClick={startRecording} className="px-8 py-3.5 bg-[#E74C3C] border-none text-white rounded-2xl text-base font-bold animate-pulse">🎤 Ghi âm</button>
+          <button onClick={beginCountdown} className="px-8 py-3.5 bg-[#E74C3C] border-none text-white rounded-2xl text-base font-bold animate-pulse">🎤 Ghi âm</button>
+        )}
+        {phase === "countdown" && (
+          <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>✕ Hủy</button>
+        )}
+        {phase === "recording" && (
+          <div className="text-chu-nhat text-[13px] py-3">🎙 Đang lắng nghe...</div>
         )}
         {phase === "recorded" && (
           <>
