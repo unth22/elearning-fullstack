@@ -183,7 +183,7 @@ export default function CourseStudyPage() {
   const inModuleFlow = modules.length > 0 && MODULE_STEPS.some((s) => s.id === mode);
 
   return (
-    <div className="flex min-h-screen" style={{ background: theme.pageBg }}>
+    <div className={`flex min-h-screen ${dark ? "" : "theme-light"}`} style={{ background: theme.pageBg }}>
       {/* Sidebar */}
       <div
         className={`${sidebarOpen ? "w-[240px] min-w-[240px]" : "w-0 min-w-0"} border-r transition-all overflow-hidden flex-shrink-0 flex flex-col`}
@@ -277,7 +277,7 @@ export default function CourseStudyPage() {
           {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} dark={dark} />}
           {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} />}
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
-          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key={`fc-${moduleIndex}`} />}
+          {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
             ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} key={`rc-${moduleIndex}`} />
             : <QuizMode vocab={mainVocab} accentColor={accentColor} key={`q-${moduleIndex}`} />)}

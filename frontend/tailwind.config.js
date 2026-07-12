@@ -8,15 +8,18 @@ export default {
         "muc-dem": "#1A1A2E",  // Mực Đêm — nền tối, navbar
         "vang-kim": "#F0A500", // Vàng Kim — điểm nhấn, badge HOT
 
-        // Bảng màu trang học (flashcard/quiz/hanzi/...)
-        "dem-sau": "#0F1A2E",   // nền chính trang học
-        "dem-nhat": "#1E3A5F",  // nền thẻ/card
-        "dem-nhat-2": "#0F2840", // nền thẻ (gradient/alt)
-        "dem-toi": "#091525",   // nền sidebar/topbar
-        "vien-dem": "#2A4A7F",  // viền card/input
-        "chu-ngoc": "#F0EDE4",  // chữ chính (trên nền tối)
-        "chu-nhat": "#8BA3C0",  // chữ phụ (trên nền tối)
-        "chu-mo": "#4A6A8A",    // chữ mờ/placeholder (trên nền tối)
+        // Bảng màu trang học (flashcard/quiz/hanzi/...) — trỏ tới biến CSS
+        // (định nghĩa ở index.css, dạng "R G B") để nút sáng/tối đổi được cả
+        // bộ cùng lúc. Dùng rgb(var(...) / <alpha-value>) để Tailwind giữ
+        // nguyên tham chiếu biến thay vì tính cứng màu lúc build.
+        "dem-sau": "rgb(var(--dem-sau) / <alpha-value>)",
+        "dem-nhat": "rgb(var(--dem-nhat) / <alpha-value>)",
+        "dem-nhat-2": "rgb(var(--dem-nhat-2) / <alpha-value>)",
+        "dem-toi": "rgb(var(--dem-toi) / <alpha-value>)",
+        "vien-dem": "rgb(var(--vien-dem) / <alpha-value>)",
+        "chu-ngoc": "rgb(var(--chu-ngoc) / <alpha-value>)",
+        "chu-nhat": "rgb(var(--chu-nhat) / <alpha-value>)",
+        "chu-mo": "rgb(var(--chu-mo) / <alpha-value>)",
         "xanh-luc": "#4CAF8E",  // xanh lá — trạng thái đúng/thành công
       },
       fontFamily: {

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { speak, shuffle } from "./helpers";
 import { C } from "../../styles/theme";
 
-export default function FlashcardMode({ vocab, accentColor }) {
+export default function FlashcardMode({ vocab, accentColor, dark = false }) {
   const [idx, setIdx] = useState(0);
   const [known, setKnown] = useState(new Set());
   const [deck, setDeck] = useState(vocab);
@@ -22,6 +22,20 @@ export default function FlashcardMode({ vocab, accentColor }) {
     setKnown(new Set());
   };
 
+  const cardBg = dark ? `linear-gradient(150deg, ${C.ink}, #2D1B4E)` : "#F9FAFB";
+  const cardBorder = dark ? "none" : `2px solid ${accentColor}33`;
+  const cardShadow = dark ? "0 12px 40px rgba(0,0,0,.25)" : "0 8px 28px rgba(0,0,0,.06)";
+  const textMain = dark ? "#fff" : "#111827";
+  const textSub = dark ? "rgba(255,255,255,.45)" : "#9CA3AF";
+  const exPinyinColor = dark ? "rgba(255,255,255,.5)" : "#6B7280";
+  const exViColor = dark ? "rgba(255,255,255,.65)" : "#4B5563";
+  const dividerColor = dark ? "1px solid rgba(255,255,255,.14)" : "1px solid #E5E7EB";
+  const tagBg = dark ? "rgba(255,255,255,.1)" : accentColor + "14";
+  const tagText = dark ? "rgba(255,255,255,.7)" : accentColor;
+  const btnBg = dark ? "rgba(255,255,255,.12)" : accentColor + "18";
+  const btnText = dark ? "#fff" : accentColor;
+  const pinyinColor = dark ? C.gold : accentColor;
+
   return (
     <div className="flex flex-col items-center gap-6 px-4">
       <div className="flex gap-3 items-center">
@@ -36,34 +50,34 @@ export default function FlashcardMode({ vocab, accentColor }) {
       </div>
 
       <div className="w-[min(480px,100%)] rounded-[24px] px-8 py-9"
-        style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, boxShadow: "0 12px 40px rgba(0,0,0,.25)" }}>
-        <div className="leading-tight" style={{ fontFamily: C.hanzi, color: "#fff", fontSize: 56 }}>{card.zh}</div>
-        <div className="text-lg italic mt-3" style={{ color: C.gold }}>{card.pinyin}</div>
-        <div className="text-xl font-bold mt-2" style={{ color: "#fff" }}>{card.vi}</div>
-        {card.en && <div className="text-sm mt-1" style={{ color: "rgba(255,255,255,.45)" }}>{card.en}</div>}
+        style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
+        <div className="leading-tight" style={{ fontFamily: C.hanzi, color: textMain, fontSize: 56 }}>{card.zh}</div>
+        <div className="text-lg italic mt-3" style={{ color: pinyinColor }}>{card.pinyin}</div>
+        <div className="text-xl font-bold mt-2" style={{ color: textMain }}>{card.vi}</div>
+        {card.en && <div className="text-sm mt-1" style={{ color: textSub }}>{card.en}</div>}
 
         {(card.tags || []).length > 0 && (
           <div className="flex gap-1.5 mt-3 flex-wrap">
             {card.tags.map((t) => (
               <span key={t} className="rounded-full px-2.5 py-0.5 text-[11px]"
-                style={{ background: "rgba(255,255,255,.1)", color: "rgba(255,255,255,.7)" }}>{t}</span>
+                style={{ background: tagBg, color: tagText }}>{t}</span>
             ))}
           </div>
         )}
 
         {card.example_zh && (
           <>
-            <div className="my-5" style={{ borderTop: "1px solid rgba(255,255,255,.14)" }} />
-            <div className="text-lg leading-snug" style={{ fontFamily: C.hanzi, color: "#fff" }}>{card.example_zh}</div>
-            <div className="text-sm mt-1.5" style={{ color: "rgba(255,255,255,.5)" }}>{card.example_pinyin}</div>
-            <div className="text-sm italic mt-1" style={{ color: "rgba(255,255,255,.65)" }}>{card.example_vi}</div>
+            <div className="my-5" style={{ borderTop: dividerColor }} />
+            <div className="text-lg leading-snug" style={{ fontFamily: C.hanzi, color: textMain }}>{card.example_zh}</div>
+            <div className="text-sm mt-1.5" style={{ color: exPinyinColor }}>{card.example_pinyin}</div>
+            <div className="text-sm italic mt-1" style={{ color: exViColor }}>{card.example_vi}</div>
           </>
         )}
 
         <button
           onClick={() => speak(card.example_zh || card.zh)}
           className="mt-5 rounded-full px-4 py-2 text-sm font-bold"
-          style={{ background: "rgba(255,255,255,.12)", color: "#fff", border: "none", cursor: "pointer" }}
+          style={{ background: btnBg, color: btnText, border: "none", cursor: "pointer" }}
         >🔊 Nghe câu</button>
       </div>
 

@@ -7,3 +7,30 @@
 body {
   margin: 0;
 }
+
+/* Bảng màu trang học (Flashcard/Quiz/Grammar/Dictation/Shadowing/Vocab/Hanzi...):
+   biến CSS để nút mặt trời/mặt trăng ở CourseStudyPage đổi được cả bộ 1 lần,
+   không phải sửa từng component. Mặc định (:root) = tối; .theme-light = sáng.
+   Giá trị để dạng "R G B" (không có #/rgb()) vì Tailwind ghép thành
+   rgb(var(--x) / <alpha-value>) — cần đúng định dạng để đổi được lúc runtime. */
+:root {
+  --dem-sau: 15 26 46;
+  --dem-nhat: 30 58 95;
+  --dem-nhat-2: 15 40 64;
+  --dem-toi: 9 21 37;
+  --vien-dem: 42 74 127;
+  --chu-ngoc: 240 237 228;
+  --chu-nhat: 139 163 192;
+  --chu-mo: 74 106 138;
+}
+
+.theme-light {
+  --dem-sau: 255 255 255;
+  --dem-nhat: 249 250 251;
+  --dem-nhat-2: 243 244 246;
+  --dem-toi: 243 244 246;
+  --vien-dem: 229 231 235;
+  --chu-ngoc: 17 24 39;
+  --chu-nhat: 107 114 128;
+  --chu-mo: 156 163 175;
+}
