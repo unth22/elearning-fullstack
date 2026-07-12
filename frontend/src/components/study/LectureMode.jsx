@@ -1,6 +1,6 @@
 import Highlightable from "./Highlightable";
 
-export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote }) {
+export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote, onUpdateNote }) {
   const modules = course?.intro_content?.modules;
 
   if (!modules || !modules.length) {
@@ -34,11 +34,11 @@ export default function LectureMode({ course, moduleIndex = 0, accentColor, note
         </div>
         <div className="h-px flex-1 bg-gray-200" />
       </div>
-      <Highlightable as="h2" text={m.subtitle} notes={notes} onSave={onSaveNote}
+      <Highlightable as="h2" text={m.subtitle} notes={notes} onSave={onSaveNote} onUpdate={onUpdateNote}
         className="text-xl font-bold text-gray-900 mb-4 block" />
       <div className="flex flex-wrap gap-2 mb-8">
         {(m.topics || []).map((t, j) => (
-          <Highlightable key={j} text={t} notes={notes} onSave={onSaveNote}
+          <Highlightable key={j} text={t} notes={notes} onSave={onSaveNote} onUpdate={onUpdateNote}
             className="text-sm text-gray-600 bg-gray-100 rounded-lg px-3 py-1.5 inline-block" />
         ))}
       </div>

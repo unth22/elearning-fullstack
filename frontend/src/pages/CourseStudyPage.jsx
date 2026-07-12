@@ -17,7 +17,7 @@ import StudyToolsDock from "../components/study/StudyToolsDock";
 import DictionaryPopup from "../components/study/DictionaryPopup";
 import NotesPanel from "../components/study/NotesPanel";
 import TrialExpiredNotice from "../components/study/TrialExpiredNotice";
-import { getNotesByCourse, createNote } from "../services/noteService";
+import { getNotesByCourse, createNote, updateNote } from "../services/noteService";
 import { getMyEnrollments } from "../services/enrollmentService";
 import { getModuleProgress, markModuleStep } from "../services/moduleProgressService";
 
@@ -99,8 +99,21 @@ export default function CourseStudyPage() {
     try {
       const created = await createNote({ courseId: id, selectedText, color, note });
       setNotes((prev) => [created, ...prev]);
+      return created;
     } catch (err) {
       console.error("Lỗi lưu ghi chú:", err.message);
+      return null;
+    }
+  }
+
+  async function handleUpdateNote(noteId, { note, color }) {
+    try {
+      const updated = await updateNote(noteId, { note, color });
+      setNotes((prev) => prev.map((n) => (n.id === noteId ? updated : n)));
+      return updated;
+    } catch (err) {
+      console.error("Lỗi cập nhật ghi chú:", err.message);
+      return null;
     }
   }
 
@@ -224,7 +237,7 @@ export default function CourseStudyPage() {
 
         <div className="flex-1 overflow-y-auto py-7 px-5 bg-white">
           {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
-          {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} />}
+          {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} />}
           {mode === "phrases" && <PhrasesMode />}
           {mode === "dialogue" && <DialogueMode />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} key="fc" />}

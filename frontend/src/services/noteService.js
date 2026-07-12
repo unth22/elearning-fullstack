@@ -18,6 +18,16 @@ export async function createNote({ courseId, selectedText, note, color }) {
   return res.json();
 }
 
+export async function updateNote(id, { note, color }) {
+  const res = await fetch(`${BASE_URL}/notes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ note, color }),
+  });
+  if (!res.ok) throw new Error("Không thể cập nhật ghi chú.");
+  return res.json();
+}
+
 export async function deleteNote(id) {
   const res = await fetch(`${BASE_URL}/notes/${id}`, { method: "DELETE", headers: authHeaders() });
   if (!res.ok) throw new Error("Không thể xóa ghi chú.");
