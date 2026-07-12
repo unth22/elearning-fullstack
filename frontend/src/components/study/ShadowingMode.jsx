@@ -31,15 +31,50 @@ function scorePronunciation(target, transcript) {
 
   const matchedFull = new Array(chars.length).fill(true); // dấu câu luôn coi là "đúng" (không tô đỏ)
   tMap.forEach((origIdx, strippedIdx) => { matchedFull[origIdx] = matchedStripped[strippedIdx]; });
+  const missed = tMap.filter((origIdx, strippedIdx) => !matchedStripped[strippedIdx]).map((origIdx) => chars[origIdx]);
   const correctCount = matchedStripped.filter(Boolean).length;
   const percent = m > 0 ? Math.round((correctCount / m) * 100) : 0;
-  return { chars, matchedFull, percent };
+  return { chars, matchedFull, percent, missed: [...new Set(missed)] };
+}
+
+function scoreColor(percent) {
+  return percent >= 85 ? "#4CAF8E" : percent >= 60 ? "#E8B84B" : "#E74C3C";
+}
+
+function scoreFeedback(percent) {
+  if (percent >= 95) return "Xuất sắc! Phát âm gần như hoàn hảo.";
+  if (percent >= 85) return "Rất tốt! Chỉ còn vài chỗ nhỏ cần chỉnh.";
+  if (percent >= 60) return "Khá ổn — nghe chậm lại các từ chưa chuẩn rồi thử lại nhé.";
+  return "Cần luyện thêm — hãy nghe kỹ câu mẫu (thử tốc độ chậm) trước khi ghi âm lại.";
+}
+
+// Vòng tròn điểm số kiểu ELSA Speak — trực quan hơn thanh ngang, dễ tạo cảm
+// giác "muốn đạt điểm cao hơn" để thúc đẩy luyện lại.
+function ScoreRing({ percent, size = 96 }) {
+  const stroke = 8;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const color = scoreColor(percent);
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(128,128,128,.25)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={c} strokeDashoffset={c - (percent / 100) * c} strokeLinecap="round"
+        style={{ transition: "stroke-dashoffset .6s ease" }} />
+      <text x={size / 2} y={size / 2} textAnchor="middle" dominantBaseline="central" fontSize={20} fontWeight={800}
+        fill={color} style={{ transform: `rotate(90deg)`, transformOrigin: `${size / 2}px ${size / 2}px` }}>
+        {percent}%
+      </text>
+    </svg>
+  );
 }
 
 export default function ShadowingMode({ sentences, accentColor }) {
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | recorded | evaluated
   const [transcript, setTranscript] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [bestScores, setBestScores] = useState({}); // { [sentenceIdx]: bestPercent } — trong phiên học này
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
 
@@ -66,20 +101,36 @@ export default function ShadowingMode({ sentences, accentColor }) {
   };
 
   const retry = () => { setPhase("ready"); setTranscript(""); };
-  const next = () => { setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); };
+  const next = () => { setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); setAttempts(0); };
 
   const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", recorded: accentColor, evaluated: accentColor };
   const scored = phase === "evaluated" && transcript ? scorePronunciation(sentence.zh, transcript) : null;
+  const bestScore = bestScores[idx];
+
+  const evaluate = () => {
+    const result = scorePronunciation(sentence.zh, transcript);
+    setAttempts((a) => a + 1);
+    setBestScores((prev) => ({ ...prev, [idx]: Math.max(prev[idx] || 0, result.percent) }));
+    setPhase("evaluated");
+  };
 
   return (
     <div className="max-w-[520px] mx-auto px-4 text-center">
-      <div className="text-chu-nhat text-[13px] mb-5">Shadowing: Nghe → Nhại lại theo • {idx + 1}/{sentences.length}</div>
+      <div className="text-chu-nhat text-[13px] mb-5">Shadowing: Nghe → Nhại lại theo • {idx + 1}/{sentences.length}
+        {bestScore !== undefined && <span style={{ color: scoreColor(bestScore) }}> · Điểm cao nhất {bestScore}%</span>}
+      </div>
       <div className="bg-dem-nhat rounded-2xl p-7 mb-5" style={{ border: `2px solid ${phaseColors[phase]}44` }}>
         {phase === "ready" && <div className="text-chu-mo text-sm mb-3">Nhấn để bắt đầu nghe câu mẫu</div>}
         {phase === "listening" && <div className="text-[#E8B84B] text-sm mb-3">🎧 Đang phát âm... hãy nghe thật kỹ</div>}
         {phase === "shadowing" && <div className="text-xanh-luc text-sm mb-3">🎤 Hãy nhại lại ngay bây giờ!</div>}
         {phase === "recorded" && <div className="text-sm mb-3" style={{ color: accentColor }}>🎙 Đã ghi âm xong — bấm "Đánh giá ghi âm" để chấm điểm</div>}
-        {phase === "evaluated" && <div className="text-sm mb-3" style={{ color: accentColor }}>✅ Đã chấm điểm</div>}
+
+        {phase === "evaluated" && scored && (
+          <div className="flex flex-col items-center mb-4">
+            <ScoreRing percent={scored.percent} />
+            <div className="text-sm mt-2 font-semibold" style={{ color: scoreColor(scored.percent) }}>{scoreFeedback(scored.percent)}</div>
+          </div>
+        )}
 
         {scored ? (
           <div className="text-2xl font-serif leading-relaxed text-chu-ngoc">
@@ -108,22 +159,27 @@ export default function ShadowingMode({ sentences, accentColor }) {
       {scored && (
         <div className="bg-dem-nhat-2 border border-vien-dem rounded-xl p-4 mb-4">
           <div className="text-chu-nhat text-xs mb-1.5">Bạn đã nói:</div>
-          <div className="text-chu-ngoc text-lg font-serif">{transcript}</div>
-          <div className="flex items-center justify-center gap-2 mt-2.5">
-            <div className="bg-gray-700/40 rounded-full h-2 w-32 overflow-hidden">
-              <div className="h-full" style={{ width: `${scored.percent}%`, background: scored.percent >= 80 ? "#4CAF8E" : scored.percent >= 50 ? "#E8B84B" : "#E74C3C" }} />
+          <div className="text-chu-ngoc text-lg font-serif mb-2">{transcript}</div>
+          {scored.missed.length > 0 ? (
+            <div className="flex items-center justify-center gap-1.5 flex-wrap">
+              <span className="text-chu-nhat text-[11px]">Cần luyện thêm:</span>
+              {scored.missed.map((c) => (
+                <span key={c} className="text-[13px] font-serif font-bold rounded-md px-1.5"
+                  style={{ color: "#E74C3C", background: "#E74C3C22" }}>{c}</span>
+              ))}
             </div>
-            <span className="text-[13px] font-bold" style={{ color: scored.percent >= 80 ? "#4CAF8E" : scored.percent >= 50 ? "#E8B84B" : "#E74C3C" }}>
-              {scored.percent}% đúng
-            </span>
-          </div>
-          <div className="text-chu-nhat text-[11px] mt-2">Chữ xanh = phát âm đúng, chữ đỏ = cần luyện lại</div>
+          ) : (
+            <div className="text-[11px]" style={{ color: "#4CAF8E" }}>Tất cả các chữ đều phát âm đúng thứ tự 🎉</div>
+          )}
         </div>
       )}
 
       <div className="flex gap-2.5 justify-center flex-wrap">
         {phase === "ready" && (
-          <button onClick={startShadow} className="px-8 py-3.5 border-none rounded-2xl text-base font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>▶ Bắt đầu</button>
+          <>
+            <button onClick={startShadow} className="px-8 py-3.5 border-none rounded-2xl text-base font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>▶ Bắt đầu</button>
+            <button onClick={() => speak(sentence.zh, "zh-CN", 0.55)} className="px-5 py-3.5 bg-dem-nhat rounded-2xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🐢 Nghe chậm</button>
+          </>
         )}
         {phase === "shadowing" && (
           <button onClick={startRecording} className="px-8 py-3.5 bg-[#E74C3C] border-none text-white rounded-2xl text-base font-bold animate-pulse">🎤 Ghi âm</button>
@@ -131,13 +187,15 @@ export default function ShadowingMode({ sentences, accentColor }) {
         {phase === "recorded" && (
           <>
             <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
+            <button onClick={() => speak(sentence.zh, "zh-CN", 0.55)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🐢 Nghe chậm</button>
             <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại</button>
-            <button onClick={() => setPhase("evaluated")} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>📊 Đánh giá ghi âm</button>
+            <button onClick={evaluate} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>📊 Đánh giá ghi âm</button>
           </>
         )}
         {phase === "evaluated" && (
           <>
             <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>↩ Thử lại</button>
+            <button onClick={() => speak(sentence.zh, "zh-CN", 0.55)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🐢 Nghe chậm</button>
             <button onClick={() => speak(sentence.zh)} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>🔊 Nghe lại</button>
             <button onClick={next} className="px-6 py-3 border-none rounded-xl font-bold" style={{ background: accentColor, color: "#0F1A2E" }}>Câu tiếp →</button>
           </>

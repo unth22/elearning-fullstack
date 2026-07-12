@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [checkin, setCheckin] = useState(null);
   const sidebarRef = useRef(null);
+  const currentRowRef = useRef(null);
   const [roadmapMaxHeight, setRoadmapMaxHeight] = useState(null);
 
   useEffect(() => {
@@ -84,6 +85,25 @@ export default function DashboardPage() {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [courseDetail, moduleProgressRows, srsStats, enrollments, selectedCourseId]);
+
+  // Cuộn lộ trình tới đúng module đang học (thay vì luôn bắt đầu ở module 1) —
+  // hữu ích khi khóa có nhiều module, học sinh không phải tự cuộn tìm chỗ học dở.
+  useEffect(() => {
+    const mods = courseDetail?.intro_content?.modules || [];
+    if (!mods.length) return;
+    const doneByModule = {};
+    for (const row of moduleProgressRows) {
+      const set = doneByModule[row.module_index] || new Set();
+      set.add(row.step_id);
+      doneByModule[row.module_index] = set;
+    }
+    const firstUnfinished = mods.findIndex((_, i) => (doneByModule[i]?.size || 0) < MODULE_STEPS.length);
+    if (firstUnfinished <= 0) return; // module 1 đang học hoặc chưa có dữ liệu -> giữ nguyên đầu danh sách
+    const frame = requestAnimationFrame(() => {
+      currentRowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [courseDetail, moduleProgressRows]);
 
   async function toggleLesson(lessonId, current) {
     await setLessonProgress(lessonId, !current);
@@ -321,6 +341,7 @@ export default function DashboardPage() {
                 const done = stepsDoneCount(i);
                 return (
                   <Link key={i} to={`/course/${enrollment.course_id}?module=${i}&mode=${nextStep(i).id}`}
+                    ref={i === currentModuleIdx ? currentRowRef : undefined}
                     style={{ textDecoration: "none", color: "inherit", display: "block" }}>
                     <div style={{ padding: "14px 20px",
                       borderBottom: i < modules.length - 1 ? `1px solid ${C.border}` : "none",

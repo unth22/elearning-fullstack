@@ -18,12 +18,12 @@ function pickVoice(lang) {
   );
 }
 
-export function speak(text, lang = "zh-CN") {
+export function speak(text, lang = "zh-CN", rate = 0.92) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const u = new SpeechSynthesisUtterance(text);
   u.lang = lang;
-  u.rate = 0.92;
+  u.rate = rate;
   u.pitch = 1.05;
   const voice = pickVoice(lang);
   if (voice) u.voice = voice;
