@@ -200,14 +200,21 @@ export default function DashboardPage() {
             <div style={{ fontSize: 24, fontWeight: 800 }}>{user?.fullName}</div>
           </div>
           <div>
-            <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ background: C.goldSoft, borderRadius: 14, padding: "12px 18px", textAlign: "center" }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: C.gold }}>🔥 {activity.streak}</div>
-                <div style={{ fontSize: 11, color: C.t3 }}>ngày streak</div>
-              </div>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
               <div style={{ background: C.greenSoft, borderRadius: 14, padding: "12px 18px", textAlign: "center" }}>
                 <div style={{ fontSize: 22, fontWeight: 800, color: C.green }}>{srsStats.learned}</div>
                 <div style={{ fontSize: 11, color: C.t3 }}>từ đã học</div>
+              </div>
+              {/* Mục tiêu học tập — streak hiện ở góc phải trên của thẻ này */}
+              <div style={{ width: 260 }}>
+                <GoalTracker
+                  enrollment={enrollment}
+                  progressPercent={overallProgressPercent}
+                  wateredToday={wateredToday}
+                  streak={activity.streak}
+                  onGoalSet={(updated) => setEnrollments((prev) => prev.map((e) =>
+                    e.course_id === updated.course_id ? { ...e, ...updated } : e))}
+                />
               </div>
             </div>
             {/* Điểm danh tuần — nhỏ gọn, không nêu bật */}
@@ -404,15 +411,6 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-
-            {/* Đặt mục tiêu hoàn thành khóa học */}
-            <GoalTracker
-              enrollment={enrollment}
-              progressPercent={overallProgressPercent}
-              wateredToday={wateredToday}
-              onGoalSet={(updated) => setEnrollments((prev) => prev.map((e) =>
-                e.course_id === updated.course_id ? { ...e, ...updated } : e))}
-            />
 
             {/* Tra cứu nhanh từ vựng chuyên ngành */}
             <QuickLookup />

@@ -18,7 +18,17 @@ function plantStage(percent) {
   return PLANT_STAGES.find((s) => percent <= s.max) || PLANT_STAGES[PLANT_STAGES.length - 1];
 }
 
-export default function GoalTracker({ enrollment, progressPercent, wateredToday, onGoalSet }) {
+function StreakBadge({ streak }) {
+  if (streak === undefined || streak === null) return null;
+  return (
+    <div style={{ textAlign: "right", flexShrink: 0 }}>
+      <div style={{ fontSize: 15, fontWeight: 800, color: C.gold }}>🔥 {streak}</div>
+      <div style={{ fontSize: 9.5, color: C.t3 }}>ngày streak</div>
+    </div>
+  );
+}
+
+export default function GoalTracker({ enrollment, progressPercent, wateredToday, streak, onGoalSet }) {
   const [customDays, setCustomDays] = useState("");
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -41,7 +51,10 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
   if (!enrollment.target_days || editing) {
     return (
       <div style={{ background: "#fff", borderRadius: 18, padding: 20, border: `1.5px solid ${C.border}` }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>🎯 Đặt mục tiêu học tập</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4 }}>🎯 Đặt mục tiêu học tập</div>
+          <StreakBadge streak={streak} />
+        </div>
         <p style={{ fontSize: 12.5, color: C.t3, lineHeight: 1.6, marginBottom: 14 }}>
           Chọn thời gian bạn muốn hoàn thành khóa này để theo dõi tiến độ thực tế.
         </p>
@@ -97,12 +110,7 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
           </div>
           <div style={{ fontSize: 12, color: C.t3 }}>Hoàn thành trong {enrollment.target_days} ngày</div>
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontSize: 20, fontWeight: 800, color: daysRemaining >= 0 ? accent : C.red }}>
-            {daysRemaining >= 0 ? daysRemaining : `+${-daysRemaining}`}
-          </div>
-          <div style={{ fontSize: 10.5, color: C.t3 }}>{daysRemaining >= 0 ? "ngày còn lại" : "ngày quá hạn"}</div>
-        </div>
+        <StreakBadge streak={streak} />
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, background: C.bg, borderRadius: 14,
@@ -127,8 +135,13 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
             width: 2, height: 12, background: C.t1, opacity: .5 }} />
         </div>
       </div>
-      <div style={{ fontSize: 11, color: onTrack ? C.green : C.red, fontWeight: 600 }}>
-        {onTrack ? "✓ Đang đúng tiến độ" : "⚠ Đang chậm hơn kế hoạch — cố lên nhé!"}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ fontSize: 11, color: onTrack ? C.green : C.red, fontWeight: 600 }}>
+          {onTrack ? "✓ Đang đúng tiến độ" : "⚠ Đang chậm hơn kế hoạch — cố lên nhé!"}
+        </div>
+        <div style={{ fontSize: 10.5, color: daysRemaining >= 0 ? C.t3 : C.red }}>
+          {daysRemaining >= 0 ? `${daysRemaining} ngày còn lại` : `+${-daysRemaining} ngày quá hạn`}
+        </div>
       </div>
     </div>
   );
