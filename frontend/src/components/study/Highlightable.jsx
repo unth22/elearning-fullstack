@@ -45,9 +45,15 @@ export default function Highlightable({ text, notes, onSave, as: Tag = "span", c
   }
 
   function pickColor(color) {
-    if (toolbar) {
-      const note = window.prompt(`Ghi chú cho "${toolbar.selectedText}" (có thể để trống):`, "");
-      onSave({ selectedText: toolbar.selectedText, color, note: note && note.trim() ? note.trim() : null });
+    if (toolbar) onSave({ selectedText: toolbar.selectedText, color, note: null });
+    closeToolbar();
+  }
+
+  function addNote() {
+    if (!toolbar) return;
+    const note = window.prompt(`Ghi chú cho "${toolbar.selectedText}":`, "");
+    if (note && note.trim()) {
+      onSave({ selectedText: toolbar.selectedText, color: "yellow", note: note.trim() });
     }
     closeToolbar();
   }
@@ -76,10 +82,15 @@ export default function Highlightable({ text, notes, onSave, as: Tag = "span", c
           onMouseDown={(e) => e.preventDefault()}
         >
           {HIGHLIGHT_COLORS.map((c) => (
-            <button key={c.id} onClick={() => pickColor(c.id)} title="Highlight (có thể kèm ghi chú)"
+            <button key={c.id} onClick={() => pickColor(c.id)} title="Highlight"
               style={{ width: 20, height: 20, borderRadius: "50%", background: c.hex,
                 border: "2px solid #fff", cursor: "pointer", padding: 0 }} />
           ))}
+          <span style={{ width: 1, height: 18, background: "rgba(255,255,255,.25)", margin: "0 2px" }} />
+          <button onClick={addNote} title="Viết ghi chú"
+            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 14, padding: "0 2px" }}>
+            ✏️
+          </button>
         </div>
       )}
     </Tag>
