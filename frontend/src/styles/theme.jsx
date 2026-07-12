@@ -18,7 +18,7 @@ export const C = {
   t1: "#1A1A2E",
   t2: "#44445A",
   t3: "#8E8E9C",
-  hanzi: "'Noto Serif SC','STSong',serif",
+  hanzi: "'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif",
   body: "'Inter',system-ui,sans-serif",
   // Dark theme (Landing page — deep black + red/gold, Playfair Display headlines)
   serif: "'Playfair Display',serif",

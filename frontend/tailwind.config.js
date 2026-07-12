@@ -24,7 +24,9 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "Sora", "sans-serif"],
-        serif: ["Noto Serif SC", "serif"],
+        // Dùng cho chữ Hán khắp trang học — Noto Sans SC có nét đều
+        // (không thanh đậm khác nhau như font serif kiểu Tống/Minh).
+        serif: ["Noto Sans SC", "PingFang SC", "Microsoft YaHei", "sans-serif"],
       },
     },
   },
