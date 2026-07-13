@@ -236,15 +236,18 @@ export default function DashboardPage() {
             <div style={{ fontSize: 13, color: C.t3 }}>{greeting()}</div>
             <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 14 }}>{user?.fullName}</div>
 
-            {/* Khóa học của tôi — để cạnh mục tiêu học tập cho đầy phần đầu trang */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            {/* Khóa học của tôi — nút đăng ký khóa khác chuyển sang trang Hồ sơ
+                (mục "Khóa học của tôi"), ở đây chỉ để icon dấu cộng gọn cho đỡ rối. */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: C.t3, letterSpacing: .6 }}>
                 KHÓA HỌC CỦA TÔI
               </div>
-              <Link to="/courses" style={{
-                padding: "6px 14px", borderRadius: 20, textDecoration: "none",
-                border: `1.5px dashed ${C.border}`, color: C.t3, fontSize: 12.5, fontWeight: 600 }}>
-                + Đăng ký khóa học khác
+              <Link to="/courses" title="Đăng ký khóa học khác" style={{
+                width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                textDecoration: "none", border: `1.5px dashed ${C.border}`,
+                color: C.t3, fontSize: 13, fontWeight: 700, lineHeight: 1 }}>
+                +
               </Link>
             </div>
             <div ref={courseDropdownRef} style={{ position: "relative", maxWidth: 320 }}>

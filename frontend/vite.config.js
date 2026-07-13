@@ -14,6 +14,13 @@ export default defineConfig({
         target: "http://localhost:5000",
         changeOrigin: true,
       },
+      // Ảnh đại diện được backend lưu trên đĩa và phục vụ tại /uploads/... —
+      // thiếu dòng này thì ảnh vừa tải lên sẽ 404 trên dev server (chỉ /api
+      // được proxy), khiến ảnh đại diện mới không hiển thị được.
+      "/uploads": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
+      },
     },
   },
 });

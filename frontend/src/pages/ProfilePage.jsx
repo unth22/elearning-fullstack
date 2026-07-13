@@ -16,8 +16,8 @@ const SECTIONS = [
   { id: "info", icon: "👤", label: "Thông tin cá nhân" },
   { id: "password", icon: "🔒", label: "Đổi mật khẩu" },
   { id: "courses", icon: "📚", label: "Khóa học của tôi" },
-  { id: "notifications", icon: "🔔", label: "Thông báo" },
   { id: "plan", icon: "🎯", label: "Kế hoạch học tập" },
+  { id: "notifications", icon: "🔔", label: "Thông báo" },
 ];
 
 function timeAgo(dateStr) {
@@ -47,6 +47,7 @@ export default function ProfilePage() {
   const [infoMsg, setInfoMsg] = useState("");
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   const [pwCurrent, setPwCurrent] = useState("");
   const [pwNew, setPwNew] = useState("");
@@ -103,6 +104,10 @@ export default function ProfilePage() {
   async function handleAvatarChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // Hiện ngay ảnh vừa chọn từ máy trong lúc chờ tải lên xong, để người dùng
+    // thấy ảnh thay đổi tức thì thay vì phải đợi phản hồi từ server.
+    const localPreview = URL.createObjectURL(file);
+    setAvatarPreview(localPreview);
     setUploadingAvatar(true);
     try {
       const updated = await uploadAvatar(file);
@@ -112,6 +117,8 @@ export default function ProfilePage() {
       setInfoMsg(err.message);
     } finally {
       setUploadingAvatar(false);
+      URL.revokeObjectURL(localPreview);
+      setAvatarPreview(null);
     }
   }
 
@@ -234,8 +241,8 @@ export default function ProfilePage() {
                     width: 76, height: 76, borderRadius: 38, background: C.red, color: "#fff",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 28, fontWeight: 700, cursor: "pointer", overflow: "hidden", flexShrink: 0 }}>
-                    {profile?.avatarUrl
-                      ? <img src={profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    {avatarPreview || profile?.avatarUrl
+                      ? <img src={avatarPreview || profile.avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : (profile?.fullName || "?")[0].toUpperCase()}
                   </div>
                   <div>
@@ -309,6 +316,12 @@ export default function ProfilePage() {
                       </div>
                     );
                   })}
+                  <Link to="/courses" style={{
+                    border: `1.5px dashed ${C.border}`, borderRadius: 14, padding: 16,
+                    display: "flex", alignItems: "center", gap: 14, textDecoration: "none", color: C.t3 }}>
+                    <div style={{ fontSize: 28 }}>+</div>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>Đăng ký khóa học khác</div>
+                  </Link>
                 </div>
               </div>
             )}

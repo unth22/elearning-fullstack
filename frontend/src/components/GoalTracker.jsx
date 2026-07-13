@@ -119,7 +119,7 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.t1 }}>{stage.label}</div>
           <div style={{ fontSize: 11, color: C.t3, marginTop: 2 }}>
-            {wateredToday ? "💧 Đã tưới nước hôm nay" : "Học hôm nay để tưới nước cho cây!"}
+            {wateredToday ? "Đã tưới nước hôm nay" : "Học hôm nay để tưới nước cho cây!"}
           </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function GoalTracker({ enrollment, progressPercent, wateredToday,
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ fontSize: 11, color: onTrack ? C.green : C.red, fontWeight: 600 }}>
-          {onTrack ? "✓ Đang đúng tiến độ" : "⚠ Đang chậm hơn kế hoạch — cố lên nhé!"}
+          {onTrack ? "Đang đúng tiến độ" : "Đang chậm hơn kế hoạch — cố lên nhé!"}
         </div>
         <div style={{ fontSize: 10.5, color: daysRemaining >= 0 ? C.t3 : C.red }}>
           {daysRemaining >= 0 ? `${daysRemaining} ngày còn lại` : `+${-daysRemaining} ngày quá hạn`}
