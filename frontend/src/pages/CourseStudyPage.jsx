@@ -288,7 +288,7 @@ export default function CourseStudyPage() {
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("flashcard")} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
-            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} key={`rc-${moduleIndex}`} />
+            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} vocab={scopedVocab} key={`rc-${moduleIndex}`} />
             : <QuizMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} key={`q-${moduleIndex}`} />)}
           {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
           {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("hanzi")} key={`hz-${moduleIndex}`} />}

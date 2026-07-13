@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { speak } from "./helpers";
 import Highlightable from "./Highlightable";
+import InteractiveText from "./InteractiveText";
 
 function Question({ q, index, accentColor, dark, onAnswered }) {
   const [chosen, setChosen] = useState(null);
@@ -63,7 +64,7 @@ function Question({ q, index, accentColor, dark, onAnswered }) {
   );
 }
 
-export default function ReadingComprehensionMode({ passage, questions, accentColor, dark = false, onComplete, notes, onSaveNote, onUpdateNote }) {
+export default function ReadingComprehensionMode({ passage, questions, accentColor, dark = false, onComplete, notes, onSaveNote, onUpdateNote, vocab = [] }) {
   const answered = useRef(new Set());
   const completedRef = useRef(false);
 
@@ -99,19 +100,20 @@ export default function ReadingComprehensionMode({ passage, questions, accentCol
         </div>
         {onSaveNote ? (
           <Highlightable as="div" text={passage.content_zh} notes={passageNotes} onSave={onSaveNote} onUpdate={onUpdateNote}
-            className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3" />
+            className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3"
+            renderText={(t) => <InteractiveText text={t} vocab={vocab} accentColor={accentColor} dark={dark} />} />
         ) : (
-          <div className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3">{passage.content_zh}</div>
+          <div className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3">
+            <InteractiveText text={passage.content_zh} vocab={vocab} accentColor={accentColor} dark={dark} />
+          </div>
         )}
         {passage.content_pinyin && (
           <div className="text-chu-nhat text-[13px] leading-relaxed whitespace-pre-line mb-3">{passage.content_pinyin}</div>
         )}
         <div className="text-chu-mo text-sm font-medium leading-relaxed whitespace-pre-line border-t border-vien-dem pt-3">{passage.content_vi}</div>
-        {onSaveNote && (
-          <div className="text-chu-nhat text-[11px] mt-3 opacity-70">
-            💡 Mẹo: bôi đen chữ trong bài khóa để tô màu highlight hoặc lưu vào ghi chú (icon 📝 góc dưới bên phải).
-          </div>
-        )}
+        <div className="text-chu-nhat text-[11px] mt-3 opacity-70">
+          💡 Mẹo: di chuột hoặc bấm vào chữ trong bài khóa để xem nghĩa{onSaveNote ? ", bôi đen để tô màu highlight hoặc lưu vào ghi chú (icon 📝 góc dưới bên phải)" : ""}.
+        </div>
       </div>
 
       {questions.length > 0 && (

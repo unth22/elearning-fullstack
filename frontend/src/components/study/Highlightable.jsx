@@ -30,7 +30,7 @@ function splitByNotes(text, notes) {
   return pieces;
 }
 
-export default function Highlightable({ text, notes, onSave, onUpdate, as: Tag = "span", className, style }) {
+export default function Highlightable({ text, notes, onSave, onUpdate, as: Tag = "span", className, style, renderText }) {
   const [toolbar, setToolbar] = useState(null); // { x, y, selectedText }
   const [pending, setPending] = useState(null); // { color, noteId } — highlight đã tô, chờ (có thể) thêm ghi chú
   const [noteDraft, setNoteDraft] = useState("");
@@ -79,9 +79,9 @@ export default function Highlightable({ text, notes, onSave, onUpdate, as: Tag =
       {pieces.map((p, i) => p.color ? (
         <mark key={i} title={p.note || undefined}
           style={{ background: HIGHLIGHT_COLOR_HEX[p.color] || HIGHLIGHT_COLOR_HEX.yellow, borderRadius: 3, padding: "0 2px" }}>
-          {p.text}
+          {renderText ? renderText(p.text) : p.text}
         </mark>
-      ) : <span key={i}>{p.text}</span>)}
+      ) : <span key={i}>{renderText ? renderText(p.text) : p.text}</span>)}
 
       {toolbar && !(pending && pending.showPopup) && (
         <div
