@@ -264,9 +264,21 @@ export default function CourseStudyPage() {
           <button
             onClick={() => setDark((d) => !d)}
             title={dark ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
-            className="rounded-full text-base"
+            className="rounded-full flex items-center justify-center"
             style={{ width: 34, height: 34, border: `1px solid ${theme.border}`, background: "transparent", cursor: "pointer" }}
-          >{dark ? "🌙" : "☀️"}</button>
+          >
+            {dark ? (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="#4A6FA5">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+              </svg>
+            ) : (
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="#F7C948">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.582a.5.5 0 0 1 0 .963L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+                <circle cx="20" cy="4" r="1.3" />
+                <circle cx="4" cy="19.5" r="1" />
+              </svg>
+            )}
+          </button>
         </div>
 
         {/* Thanh tiến trình trong module: bài giảng → trắc nghiệm → flashcard → cụm từ →
