@@ -30,7 +30,7 @@ const LOOKUP_ONLY_TAG = "Chủ đề: Kỹ thuật";
 
 const PRACTICE_MODES = [
   { id: "flashcard", label: "Flashcard", icon: "🃏" },
-  { id: "quiz", label: "Trắc nghiệm", icon: "✏️" },
+  { id: "quiz", label: "Bài khóa", icon: "📖" },
   { id: "vocab", label: "Từ vựng", icon: "📖" },
   { id: "hanzi", label: "Nét chữ", icon: "✍️" },
   { id: "dictation", label: "Nghe chép", icon: "🎧" },
@@ -284,11 +284,11 @@ export default function CourseStudyPage() {
         <div className="flex-1 overflow-y-auto py-7 px-5" style={{ background: theme.pageBg }}>
           {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
           {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} dark={dark} />}
-          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("phrases")} key={`ph-${moduleIndex}`} />}
+          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("phrases")} storageKey={`phrases_${id}_${moduleIndex}`} key={`ph-${moduleIndex}`} />}
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("flashcard")} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage
-            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} key={`rc-${moduleIndex}`} />
+            ? <ReadingComprehensionMode passage={scopedPassage} questions={scopedQuestions} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} key={`rc-${moduleIndex}`} />
             : <QuizMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("quiz")} key={`q-${moduleIndex}`} />)}
           {mode === "vocab" && <VocabMode vocab={scopedVocab} accentColor={accentColor} />}
           {mode === "hanzi" && <HanziMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("hanzi")} key={`hz-${moduleIndex}`} />}

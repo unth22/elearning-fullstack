@@ -84,6 +84,9 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
   const countdownTimer = useRef(null);
   const recognitionRef = useRef(null);
   const recordTimer = useRef(null);
+  const finalTextRef = useRef("");
+  const wantStopRef = useRef(false);
+  const elapsedRef = useRef(0);
 
   // Dọn dẹp mic/timer khi rời khỏi chế độ Shadowing giữa chừng (chuyển bước
   // khác trong toolbar) để tránh ghi âm chạy ngầm sau khi đã rời trang.
@@ -131,46 +134,66 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
     if (recordTimer.current) { clearInterval(recordTimer.current); recordTimer.current = null; }
   };
 
-  // Dừng ghi âm chủ động (do học viên bấm nút, hết giờ tối đa, hoặc chuyển
-  // câu/thử lại) — không set phase ở đây, việc chuyển sang "recorded" chỉ xảy
-  // ra trong onend, tức là khi mic THỰC SỰ đã dừng ghi, không phải chỉ vừa có
-  // 1 kết quả tạm thời.
+  // Dừng ghi âm chủ động (do học viên bấm nút, hoặc hết giờ tối đa) — đánh dấu
+  // wantStop để onend biết đây là dừng thật, không phải lỗi tạm thời cần khởi
+  // động lại mic.
   const stopRecording = () => {
+    wantStopRef.current = true;
     recognitionRef.current?.stop();
   };
 
   // continuous + interimResults để mic không tự cắt ngay sau vài chữ đầu tiên
-  // (như trước đây), mà chờ học viên nói xong cả câu hoặc tự bấm dừng. Có giới
-  // hạn thời gian tối đa để tránh treo ghi âm nếu quên bấm dừng.
-  const actuallyRecord = () => {
+  // (như trước đây). Trình duyệt vẫn có thể tự phát lỗi "no-speech" nếu có 1
+  // khoảng lặng ngắn (vd. lúc học viên chưa kịp nói ngay sau đếm ngược) — thay
+  // vì coi đó là ghi âm xong, ta tự khởi động lại mic 1 phiên mới (giữ nguyên
+  // nội dung đã ghi được) để học viên vẫn còn đủ thời gian nói hết câu, cho
+  // đến khi họ tự bấm "Dừng ghi âm" hoặc hết thời gian tối đa.
+  const startRecognitionSession = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const r = new SR();
     r.lang = "zh-CN"; r.continuous = true; r.interimResults = true;
-    let finalText = "";
     r.onresult = (e) => {
       let interim = "";
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finalText += t; else interim += t;
+        if (e.results[i].isFinal) finalTextRef.current += t; else interim += t;
       }
-      setTranscript((finalText + interim).trim());
+      setTranscript((finalTextRef.current + interim).trim());
     };
-    r.onerror = () => stopRecording();
+    r.onerror = (e) => {
+      if (e.error !== "no-speech" && e.error !== "aborted") stopRecording(); // lỗi thật (vd. mất quyền mic) mới dừng hẳn
+    };
     r.onend = () => {
       if (recognitionRef.current !== r) return; // callback trễ từ 1 phiên ghi âm cũ, bỏ qua
+      if (!wantStopRef.current && elapsedRef.current < MAX_RECORD_SECONDS) {
+        startRecognitionSession(); // im lặng tạm thời — khởi động lại để tiếp tục nghe
+        return;
+      }
       recognitionRef.current = null;
       clearRecordTimer();
       setPhase("recorded");
     };
     recognitionRef.current = r;
     r.start();
+  };
+
+  const actuallyRecord = () => {
+    if (!("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+      alert("Trình duyệt không hỗ trợ nhận giọng nói. Hãy dùng Chrome.");
+      setPhase("shadowing");
+      return;
+    }
+    finalTextRef.current = "";
+    wantStopRef.current = false;
+    elapsedRef.current = 0;
+    setTranscript("");
     setPhase("recording");
     setRecordingSeconds(0);
+    startRecognitionSession();
     recordTimer.current = setInterval(() => {
-      setRecordingSeconds((s) => {
-        if (s + 1 >= MAX_RECORD_SECONDS) stopRecording();
-        return s + 1;
-      });
+      elapsedRef.current += 1;
+      setRecordingSeconds(elapsedRef.current);
+      if (elapsedRef.current >= MAX_RECORD_SECONDS) stopRecording();
     }, 1000);
   };
 

@@ -1,11 +1,38 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { speak } from "./helpers";
 
-export default function PhrasesMode({ phrases, accentColor, dark = false, onComplete }) {
-  const [inputs, setInputs] = useState({}); // { [id]: string }
-  const [correctIds, setCorrectIds] = useState({}); // { [id]: true }
-  const correctRef = useRef(new Set());
+function loadSaved(storageKey, suffix) {
+  try {
+    return JSON.parse(localStorage.getItem(`${storageKey}_${suffix}`)) || {};
+  } catch {
+    return {};
+  }
+}
+
+export default function PhrasesMode({ phrases, accentColor, dark = false, onComplete, storageKey }) {
+  // Khôi phục lại những cụm từ đã gõ (đúng lẫn đang dở dang) từ lần trước, để
+  // chuyển sang kĩ năng khác rồi quay lại không phải làm lại từ đầu.
+  const [inputs, setInputs] = useState(() => (storageKey ? loadSaved(storageKey, "inputs") : {})); // { [id]: string }
+  const [correctIds, setCorrectIds] = useState(() => (storageKey ? loadSaved(storageKey, "correct") : {})); // { [id]: true }
+  const correctRef = useRef(new Set(Object.keys(correctIds)));
   const completedRef = useRef(false);
+
+  useEffect(() => {
+    if (storageKey) localStorage.setItem(`${storageKey}_inputs`, JSON.stringify(inputs));
+  }, [inputs, storageKey]);
+  useEffect(() => {
+    if (storageKey) localStorage.setItem(`${storageKey}_correct`, JSON.stringify(correctIds));
+  }, [correctIds, storageKey]);
+
+  // Nếu lần trước đã gõ đúng hết rồi (nhưng vì lý do gì đó bước "Cụm từ" chưa
+  // được đánh dấu hoàn thành phía server) thì báo hoàn thành ngay khi tải lại.
+  useEffect(() => {
+    if (!completedRef.current && phrases.length > 0 && correctRef.current.size >= phrases.length) {
+      completedRef.current = true;
+      onComplete?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!phrases || !phrases.length) {
     return (
@@ -21,19 +48,21 @@ export default function PhrasesMode({ phrases, accentColor, dark = false, onComp
     setInputs((prev) => ({ ...prev, [p.id]: value }));
     if (value.trim() === p.zh) {
       setCorrectIds((prev) => ({ ...prev, [p.id]: true }));
-      correctRef.current.add(p.id);
+      correctRef.current.add(String(p.id));
       if (!completedRef.current && correctRef.current.size >= phrases.length) {
         completedRef.current = true;
         onComplete?.();
       }
     } else if (correctIds[p.id]) {
       setCorrectIds((prev) => { const n = { ...prev }; delete n[p.id]; return n; });
+      correctRef.current.delete(String(p.id));
     }
   }
 
   function handleRetry(p) {
     setInputs((prev) => ({ ...prev, [p.id]: "" }));
     setCorrectIds((prev) => { const n = { ...prev }; delete n[p.id]; return n; });
+    correctRef.current.delete(String(p.id));
   }
 
   return (

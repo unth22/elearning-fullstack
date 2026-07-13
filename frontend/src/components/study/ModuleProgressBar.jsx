@@ -1,6 +1,6 @@
 export const MODULE_STEPS = [
   { id: "lecture", label: "Bài giảng", icon: "🎬" },
-  { id: "quiz", label: "Trắc nghiệm", icon: "✏️" },
+  { id: "quiz", label: "Bài khóa", icon: "📖" },
   { id: "flashcard", label: "Flashcard", icon: "🃏" },
   { id: "hanzi", label: "Nét chữ", icon: "✍️" },
   { id: "phrases", label: "Cụm từ", icon: "🔤" },
