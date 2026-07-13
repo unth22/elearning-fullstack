@@ -84,4 +84,4 @@ async function getWeekActivity(userId) {
   return week;
 }
 
-module.exports = { logActivity, getStreak, getWeekActivity };
+module.exports = { logActivity, getStreak, getWeekActivity, getActivityDates };

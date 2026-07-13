@@ -21,6 +21,24 @@ function greeting() {
   return "Chào buổi tối 🌙";
 }
 
+// Dựng lưới các tuần (mỗi tuần 7 ô, thứ 2 -> chủ nhật) cho 1 tháng bất kỳ, có
+// đệm ô trống (null) đầu/cuối cho đủ hàng — dùng cho lịch "tháng này"/"tháng trước".
+function buildMonthGrid(year, month, activeSet) {
+  const firstOfMonth = new Date(year, month, 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < startOffset; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    cells.push({ date: dateStr, dayNum: d, active: activeSet.has(dateStr) });
+  }
+  while (cells.length % 7 !== 0) cells.push(null);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const user = getCurrentUser();
@@ -28,7 +46,7 @@ export default function DashboardPage() {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [progress, setProgress] = useState([]);
   const [srsStats, setSrsStats] = useState({ due: 0, learned: 0 });
-  const [activity, setActivity] = useState({ streak: 0, week: [] });
+  const [activity, setActivity] = useState({ streak: 0, week: [], activeDates: [] });
   const [courseDetail, setCourseDetail] = useState(null);
   const [moduleProgressRows, setModuleProgressRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +58,7 @@ export default function DashboardPage() {
   const courseDropdownRef = useRef(null);
   const [roadmapMaxHeight, setRoadmapMaxHeight] = useState(null);
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+  const [calendarPeriod, setCalendarPeriod] = useState("week"); // "week" | "thisMonth" | "lastMonth"
 
   // Đóng dropdown "Khóa học của tôi" khi bấm ra ngoài.
   useEffect(() => {
@@ -193,6 +212,13 @@ export default function DashboardPage() {
   const todayIdx = (new Date().getDay() + 6) % 7; // T2=0 ... CN=6
   const wateredToday = !!activity.week?.[todayIdx]?.active;
 
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const activeDatesSet = new Set(activity.activeDates || []);
+  const monthGrid = calendarPeriod === "lastMonth"
+    ? buildMonthGrid(now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear(), (now.getMonth() + 11) % 12, activeDatesSet)
+    : buildMonthGrid(now.getFullYear(), now.getMonth(), activeDatesSet);
+
   return (
     <div style={{ minHeight: "100vh", background: C.bg, fontFamily: C.body }}>
       {/* Nav */}
@@ -303,32 +329,69 @@ export default function DashboardPage() {
               {/* Điểm danh — gọn, tự động khi học sinh học bất kỳ bước nào */}
               <DailyCheckin summary={checkin} onChecked={setCheckin} />
             </div>
-            {/* Điểm danh tuần — dạng lịch mini: thứ ở trên, ngày/dấu tick ở dưới */}
-            <div style={{ display: "flex", alignItems: "flex-end", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
-              {(activity.week.length ? activity.week : Array(7).fill(null)).map((d, i) => {
-                const dayLabel = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i];
-                // Lấy trực tiếp phần ngày từ chuỗi "YYYY-MM-DD" thay vì qua
-                // new Date().getDate() — parse qua Date sẽ coi chuỗi là mốc
-                // UTC rồi đổi sang giờ local, có thể lệch mất 1 ngày tùy múi
-                // giờ trình duyệt.
-                const dateNum = d?.date ? Number(d.date.slice(8, 10)) : "";
-                const isToday = i === todayIdx;
-                return (
-                  <div key={d?.date || i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                    <span style={{ fontSize: 8.5, color: isToday ? C.t1 : C.t3, fontWeight: isToday ? 700 : 500 }}>{dayLabel}</span>
-                    <span style={{
-                      width: 20, height: 20, borderRadius: 6,
-                      background: d?.active ? C.red : C.border,
-                      color: d?.active ? "#fff" : C.t3,
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 9.5, fontWeight: 700, flexShrink: 0,
-                      boxShadow: isToday ? `0 0 0 1.5px ${C.red}` : "none" }}>
-                      {dateNum}
-                    </span>
+            {/* Điểm danh — dạng lịch mini, chọn xem theo tuần này/tháng này/tháng trước */}
+            <div style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+              <select value={calendarPeriod} onChange={(e) => setCalendarPeriod(e.target.value)} style={{
+                fontSize: 11, color: C.t2, background: "#fff", border: `1px solid ${C.border}`,
+                borderRadius: 8, padding: "3px 8px", cursor: "pointer", fontFamily: "inherit" }}>
+                <option value="week">Tuần này</option>
+                <option value="thisMonth">Tháng này</option>
+                <option value="lastMonth">Tháng trước</option>
+              </select>
+
+              {calendarPeriod === "week" ? (
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 5 }}>
+                  {(activity.week.length ? activity.week : Array(7).fill(null)).map((d, i) => {
+                    const dayLabel = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i];
+                    // Lấy trực tiếp phần ngày từ chuỗi "YYYY-MM-DD" thay vì qua
+                    // new Date().getDate() — parse qua Date sẽ coi chuỗi là mốc
+                    // UTC rồi đổi sang giờ local, có thể lệch mất 1 ngày tùy múi
+                    // giờ trình duyệt.
+                    const dateNum = d?.date ? Number(d.date.slice(8, 10)) : "";
+                    const isToday = i === todayIdx;
+                    return (
+                      <div key={d?.date || i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <span style={{ fontSize: 8.5, color: isToday ? C.t1 : C.t3, fontWeight: isToday ? 700 : 500 }}>{dayLabel}</span>
+                        <span style={{
+                          width: 20, height: 20, borderRadius: 6,
+                          background: d?.active ? C.red : C.border,
+                          color: d?.active ? "#fff" : C.t3,
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 9.5, fontWeight: 700, flexShrink: 0,
+                          boxShadow: isToday ? `0 0 0 1.5px ${C.red}` : "none" }}>
+                          {dateNum}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: "flex", gap: 5, marginBottom: 3 }}>
+                    {["T2", "T3", "T4", "T5", "T6", "T7", "CN"].map((label) => (
+                      <span key={label} style={{ width: 20, textAlign: "center", fontSize: 8.5, color: C.t3, fontWeight: 500 }}>{label}</span>
+                    ))}
                   </div>
-                );
-              })}
-              <span style={{ fontSize: 10, color: C.t3, marginLeft: 4, alignSelf: "center" }}>tuần này</span>
+                  {monthGrid.map((week, wi) => (
+                    <div key={wi} style={{ display: "flex", gap: 5, marginBottom: 3 }}>
+                      {week.map((d, i) => {
+                        const isToday = d?.date === todayStr;
+                        return (
+                          <span key={d?.date || `${wi}-${i}`} style={{
+                            width: 20, height: 20, borderRadius: 6,
+                            background: d ? (d.active ? C.red : C.border) : "transparent",
+                            color: d?.active ? "#fff" : C.t3,
+                            display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 9.5, fontWeight: 700, flexShrink: 0,
+                            boxShadow: isToday ? `0 0 0 1.5px ${C.red}` : "none" }}>
+                            {d?.dayNum || ""}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
