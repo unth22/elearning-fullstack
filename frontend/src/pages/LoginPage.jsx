@@ -56,7 +56,10 @@ export default function LoginPage() {
           className="w-full border border-black/10 rounded-md px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
         />
 
-        <label className="block text-sm text-black/70 mb-1">Mật khẩu</label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm text-black/70">Mật khẩu</label>
+          <Link to="/forgot-password" className="text-xs text-do-han font-medium">Quên mật khẩu?</Link>
+        </div>
         <input
           type="password" name="password" value={form.password} onChange={handleChange} required
           className="w-full border border-black/10 rounded-md px-3 py-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"

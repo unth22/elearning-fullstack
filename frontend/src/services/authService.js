@@ -24,6 +24,28 @@ export async function loginUser({ email, password }) {
   return data;
 }
 
+export async function forgotPassword(email) {
+  const res = await fetch(`${BASE_URL}/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Không thể gửi yêu cầu, vui lòng thử lại.");
+  return data;
+}
+
+export async function resetPassword({ token, password }) {
+  const res = await fetch(`${BASE_URL}/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Đặt lại mật khẩu thất bại.");
+  return data;
+}
+
 export function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
