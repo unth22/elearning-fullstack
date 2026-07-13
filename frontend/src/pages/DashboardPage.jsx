@@ -299,17 +299,6 @@ export default function DashboardPage() {
               </div>
               {/* Điểm danh — gọn, tự động khi học sinh học bất kỳ bước nào */}
               <DailyCheckin summary={checkin} onChecked={setCheckin} />
-              {/* Mục tiêu học tập — streak hiện ở góc phải trên của thẻ này */}
-              <div style={{ width: 260 }}>
-                <GoalTracker
-                  enrollment={enrollment}
-                  progressPercent={overallProgressPercent}
-                  wateredToday={wateredToday}
-                  streak={activity.streak}
-                  onGoalSet={(updated) => setEnrollments((prev) => prev.map((e) =>
-                    e.course_id === updated.course_id ? { ...e, ...updated } : e))}
-                />
-              </div>
             </div>
             {/* Điểm danh tuần — nhỏ gọn, không nêu bật */}
             <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
@@ -475,6 +464,16 @@ export default function DashboardPage() {
 
             {/* Tra cứu nhanh từ vựng chuyên ngành */}
             <QuickLookup />
+
+            {/* Mục tiêu học tập — streak hiện ở góc phải trên của thẻ này */}
+            <GoalTracker
+              enrollment={enrollment}
+              progressPercent={overallProgressPercent}
+              wateredToday={wateredToday}
+              streak={activity.streak}
+              onGoalSet={(updated) => setEnrollments((prev) => prev.map((e) =>
+                e.course_id === updated.course_id ? { ...e, ...updated } : e))}
+            />
 
             {/* Gợi ý — dựa trên dữ liệu thật (SRS đến hạn / module đang học), không giả lập */}
             <div style={{ background: `linear-gradient(150deg, ${C.ink}, #2D1B4E)`, borderRadius: 18, padding: 20 }}>
