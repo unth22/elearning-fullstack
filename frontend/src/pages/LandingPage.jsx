@@ -343,75 +343,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── COURSES ── */}
-      <section id="courses" style={{ padding: "72px 24px", background: C.black }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
-            gap: 40, alignItems: "end", marginBottom: 48 }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2,
-                textTransform: "uppercase", color: C.gold, marginBottom: 14 }}>
-                Hệ thống khóa học
-              </div>
-              <h2 style={{ fontFamily: C.serif, fontSize: 36, fontWeight: 800, color: "#fff",
-                lineHeight: 1.2, letterSpacing: -.5 }}>
-                Chọn lộ trình phù hợp với bạn
-              </h2>
-            </div>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,.55)", lineHeight: 1.7 }}>
-              Từ khóa học nền tảng cho người mới bắt đầu đến chuyên đề đi sâu vào
-              từng ngành nghề lĩnh vực — mỗi khoá học được xây dựng sát thực tế,
-              phù hợp với đúng trình độ của bạn.
-            </p>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
-            {COURSES.map((c) => (
-              <div key={c.id} className="lp-course-card" style={{ background: C.panel, borderRadius: 18,
-                border: `1.5px solid ${c.featured ? C.red : C.borderGold}`, overflow: "hidden",
-                position: "relative", display: "flex", flexDirection: "column" }}>
-                {c.featured && (
-                  <span style={{ position: "absolute", top: 18, right: 18, background: C.red,
-                    color: "#fff", fontSize: 9, letterSpacing: 2, padding: "4px 10px",
-                    borderRadius: 2, fontWeight: 700 }}>TIÊU BIỂU</span>
-                )}
-                <div style={{ padding: "28px 24px 20px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
-                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: C.gold, fontWeight: 400, marginBottom: 12 }}>{c.level}</div>
-                  <div style={{ fontFamily: C.hanzi, fontSize: 34, color: "rgba(240,165,0,.45)", marginBottom: 10, lineHeight: 1 }}>{c.hanzi}</div>
-                  <div style={{ fontFamily: C.serif, fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{c.name}</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,.55)", lineHeight: 1.6 }}>{c.desc}</div>
-                </div>
-                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
-                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
-                    {c.features.map((f) => (
-                      <li key={f} style={{ fontSize: 12.5, color: "rgba(255,255,255,.65)", display: "flex", gap: 8 }}>
-                        <span style={{ color: C.gold, fontSize: 9, marginTop: 4 }}>✦</span> {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 700, color: C.gold }}>{c.price}đ</span>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,.45)" }}>{c.note}</span>
-                  </div>
-                  <button onClick={scrollToForm} className="lp-course-btn" style={{ width: "100%",
-                    borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
-                    padding: "12px 24px", fontSize: 14 }}>
-                    Đăng ký khóa học
-                  </button>
-                  {COURSE_DETAIL_MAP[c.id] && (
-                    <button onClick={() => navigate(`/course/${COURSE_DETAIL_MAP[c.id]}/detail`)}
-                      style={{ width: "100%", background: "none", border: "none", cursor: "pointer",
-                        fontFamily: "inherit", fontSize: 13, color: "rgba(255,255,255,.55)",
-                        textDecoration: "underline", padding: "2px 0" }}>
-                      Xem chi tiết khóa học
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── INDUSTRY TRACKS ── */}
       <section style={{ padding: "72px 24px", background: C.deep }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -482,6 +413,75 @@ export default function LandingPage() {
                 </div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{s.title}</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,.6)", lineHeight: 1.7 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COURSES ── */}
+      <section id="courses" style={{ padding: "72px 24px", background: C.black }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
+            gap: 40, alignItems: "end", marginBottom: 48 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 2,
+                textTransform: "uppercase", color: C.gold, marginBottom: 14 }}>
+                Hệ thống khóa học
+              </div>
+              <h2 style={{ fontFamily: C.serif, fontSize: 36, fontWeight: 800, color: "#fff",
+                lineHeight: 1.2, letterSpacing: -.5 }}>
+                Chọn lộ trình phù hợp với bạn
+              </h2>
+            </div>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,.55)", lineHeight: 1.7 }}>
+              Từ khóa học nền tảng cho người mới bắt đầu đến chuyên đề đi sâu vào
+              từng ngành nghề lĩnh vực — mỗi khoá học được xây dựng sát thực tế,
+              phù hợp với đúng trình độ của bạn.
+            </p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: 20 }}>
+            {COURSES.map((c) => (
+              <div key={c.id} className="lp-course-card" style={{ background: C.panel, borderRadius: 18,
+                border: `1.5px solid ${c.featured ? C.red : C.borderGold}`, overflow: "hidden",
+                position: "relative", display: "flex", flexDirection: "column" }}>
+                {c.featured && (
+                  <span style={{ position: "absolute", top: 18, right: 18, background: C.red,
+                    color: "#fff", fontSize: 9, letterSpacing: 2, padding: "4px 10px",
+                    borderRadius: 2, fontWeight: 700 }}>TIÊU BIỂU</span>
+                )}
+                <div style={{ padding: "28px 24px 20px", borderBottom: `1px solid rgba(255,255,255,.06)` }}>
+                  <div style={{ fontSize: 10, letterSpacing: 2, textTransform: "uppercase", color: C.gold, fontWeight: 400, marginBottom: 12 }}>{c.level}</div>
+                  <div style={{ fontFamily: C.hanzi, fontSize: 34, color: "rgba(240,165,0,.45)", marginBottom: 10, lineHeight: 1 }}>{c.hanzi}</div>
+                  <div style={{ fontFamily: C.serif, fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{c.name}</div>
+                  <div style={{ fontSize: 13, color: "rgba(255,255,255,.55)", lineHeight: 1.6 }}>{c.desc}</div>
+                </div>
+                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14, flex: 1 }}>
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
+                    {c.features.map((f) => (
+                      <li key={f} style={{ fontSize: 12.5, color: "rgba(255,255,255,.65)", display: "flex", gap: 8 }}>
+                        <span style={{ color: C.gold, fontSize: 9, marginTop: 4 }}>✦</span> {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 700, color: C.gold }}>{c.price}đ</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,.45)" }}>{c.note}</span>
+                  </div>
+                  <button onClick={scrollToForm} className="lp-course-btn" style={{ width: "100%",
+                    borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                    padding: "12px 24px", fontSize: 14 }}>
+                    Đăng ký khóa học
+                  </button>
+                  {COURSE_DETAIL_MAP[c.id] && (
+                    <button onClick={() => navigate(`/course/${COURSE_DETAIL_MAP[c.id]}/detail`)}
+                      style={{ width: "100%", background: "none", border: "none", cursor: "pointer",
+                        fontFamily: "inherit", fontSize: 13, color: "rgba(255,255,255,.55)",
+                        textDecoration: "underline", padding: "2px 0" }}>
+                      Xem chi tiết khóa học
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
