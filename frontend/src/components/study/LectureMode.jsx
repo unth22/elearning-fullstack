@@ -1,8 +1,9 @@
+import { useState } from "react";
 import Highlightable from "./Highlightable";
 
-// Bài giảng dạng nội dung phong phú (bảng biểu, danh sách, các bước) — dùng
-// cho những module tham khảo/nền tảng (vd. ngữ âm, cài đặt gõ) không phù hợp
-// với khung "chip chủ đề" đơn giản mặc định bên dưới.
+// Bài giảng dạng nội dung phong phú (bảng biểu, danh sách, các bước, hình ảnh)
+// — dùng cho những module tham khảo/nền tảng (vd. ngữ âm, cài đặt gõ) không
+// phù hợp với khung "chip chủ đề" đơn giản mặc định bên dưới.
 function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
   const textColor = dark ? "#EDEDF2" : "#111827";
   const subColor = dark ? "#9A9AB0" : "#4B5563";
@@ -22,6 +23,15 @@ function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
       ) : s.type === "text" ? (
         <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: subColor }}>{s.body}</p>
       ) : null}
+
+      {s.type === "image" && (
+        <figure className="rounded-xl overflow-hidden border" style={{ borderColor }}>
+          <img src={s.src} alt={s.alt || s.heading || ""} className="w-full block" />
+          {s.caption && (
+            <figcaption className="text-xs text-center py-2 px-3" style={{ color: subColor, background: cellBg }}>{s.caption}</figcaption>
+          )}
+        </figure>
+      )}
 
       {s.type === "list" && (
         <ul className="flex flex-col gap-1.5">
@@ -71,6 +81,61 @@ function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
   );
 }
 
+// Module dạng nhiều "trang" nhỏ (vd. Phát âm 1, Phát âm 2...) gộp trong 1
+// module duy nhất — điều hướng bằng tab/nút chuyển trang thay vì tách thành
+// nhiều module riêng có thanh kĩ năng (module này không có flashcard/quiz...).
+function PagedLecture({ m, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
+  const [page, setPage] = useState(0);
+  const p = m.pages[page];
+  const textColor = dark ? "#EDEDF2" : "#111827";
+  const borderColor = dark ? "#2A2C3D" : "#E5E7EB";
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="text-[11px] font-bold tracking-widest uppercase" style={{ color: accentColor }}>{m.title}</div>
+        <div className="h-px flex-1" style={{ background: borderColor }} />
+      </div>
+      <h2 className="text-xl font-bold mb-4" style={{ color: textColor }}>{m.subtitle}</h2>
+
+      <div className="flex gap-1.5 flex-wrap mb-6">
+        {m.pages.map((pg, i) => (
+          <button key={i} onClick={() => setPage(i)}
+            className="text-xs font-bold rounded-full px-3.5 py-1.5"
+            style={{
+              border: `1.5px solid ${i === page ? accentColor : borderColor}`,
+              background: i === page ? accentColor : "transparent",
+              color: i === page ? "#0F1A2E" : (dark ? "#9A9AB0" : "#6B7280"),
+            }}>
+            {pg.label}
+          </button>
+        ))}
+      </div>
+
+      {p.sections.map((s, i) => (
+        <Section key={i} s={s} accentColor={accentColor} dark={dark} notes={notes} onSaveNote={onSaveNote} onUpdateNote={onUpdateNote} />
+      ))}
+
+      <div className="flex items-center justify-between mt-8 pt-4" style={{ borderTop: `1px solid ${borderColor}` }}>
+        <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
+          className="text-sm font-semibold px-4 py-2 rounded-xl disabled:opacity-30"
+          style={{ border: `1px solid ${accentColor}`, color: accentColor, background: "transparent" }}>
+          ‹ Trước
+        </button>
+        <span className="text-xs" style={{ color: dark ? "#6E6E85" : "#9CA3AF" }}>{page + 1} / {m.pages.length}</span>
+        <button onClick={() => setPage((p) => Math.min(m.pages.length - 1, p + 1))} disabled={page === m.pages.length - 1}
+          className="text-sm font-semibold px-4 py-2 rounded-xl disabled:opacity-30"
+          style={{ border: "none", color: "#0F1A2E", background: accentColor }}>
+          Tiếp theo ›
+        </button>
+      </div>
+      <p className="text-xs mt-4" style={{ color: dark ? "#6E6E85" : "#9CA3AF" }}>
+        💡 Mẹo: bôi đen chữ trong phần giải thích để tô màu highlight hoặc lưu vào ghi chú (icon 📝 góc dưới bên phải).
+      </p>
+    </div>
+  );
+}
+
 export default function LectureMode({ course, moduleIndex = 0, accentColor, notes = [], onSaveNote, onUpdateNote, dark = false }) {
   const modules = course?.intro_content?.modules;
 
@@ -83,6 +148,10 @@ export default function LectureMode({ course, moduleIndex = 0, accentColor, note
   }
 
   const m = modules[moduleIndex] || modules[0];
+
+  if (m.pages?.length) {
+    return <PagedLecture m={m} accentColor={accentColor} dark={dark} notes={notes} onSaveNote={onSaveNote} onUpdateNote={onUpdateNote} />;
+  }
 
   if (m.sections?.length) {
     return (

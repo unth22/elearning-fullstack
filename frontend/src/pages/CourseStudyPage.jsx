@@ -126,6 +126,15 @@ export default function CourseStudyPage() {
     markStepComplete(mode);
   }, [course, mode, moduleIndex, id]);
 
+  // Module chỉ có bài giảng (lectureOnly) không có kĩ năng nào khác — nếu vì lý
+  // do gì đó mode bị đặt khác "lecture" (vd. link cũ còn lưu mode khác), tự đưa
+  // về lại bài giảng vì các chế độ khác không có nội dung/toolbar cho module này.
+  useEffect(() => {
+    if (!course) return;
+    const mods = course.intro_content?.modules || [];
+    if (mods[moduleIndex]?.lectureOnly && mode !== "lecture") setMode("lecture");
+  }, [course, moduleIndex, mode]);
+
   async function handleSaveNote({ selectedText, color, note }) {
     try {
       const created = await createNote({ courseId: id, selectedText, color, note });
@@ -186,6 +195,10 @@ export default function CourseStudyPage() {
   const currentStepLabel = MODULE_STEPS.find((s) => s.id === mode)?.label
     || PRACTICE_MODES.find((m) => m.id === mode)?.label
     || "";
+
+  // Module chỉ có bài giảng tham khảo (vd. Nhập môn/Phát âm) không có flashcard,
+  // trắc nghiệm... nên không hiện thanh kĩ năng và luôn khóa ở chế độ bài giảng.
+  const lectureOnly = !!modules[moduleIndex]?.lectureOnly;
 
   function selectModule(i) {
     setMode("lecture");
@@ -283,7 +296,7 @@ export default function CourseStudyPage() {
 
         {/* Thanh tiến trình trong module: bài giảng → trắc nghiệm → flashcard → cụm từ →
             ngữ pháp → hội thoại → nghe chép → shadowing */}
-        {modules.length > 0 && (
+        {modules.length > 0 && !lectureOnly && (
           <ModuleProgressBar
             activeStepId={inModuleFlow ? mode : null}
             completedSteps={moduleProgress[moduleIndex]}
