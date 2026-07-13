@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Highlightable from "./Highlightable";
+import StrokeOrderDemo from "./StrokeOrderDemo";
 
 // Bài giảng dạng nội dung phong phú (bảng biểu, danh sách, các bước, hình ảnh)
 // — dùng cho những module tham khảo/nền tảng (vd. ngữ âm, cài đặt gõ) không
@@ -31,6 +32,10 @@ function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
             <figcaption className="text-xs text-center py-2 px-3" style={{ color: subColor, background: cellBg }}>{s.caption}</figcaption>
           )}
         </figure>
+      )}
+
+      {s.type === "strokeDemo" && (
+        <StrokeOrderDemo chars={s.chars} accentColor={accentColor} dark={dark} />
       )}
 
       {s.type === "list" && (
