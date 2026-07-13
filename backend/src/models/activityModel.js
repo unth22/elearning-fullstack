@@ -3,8 +3,15 @@ const { createNotification, hasNotification } = require("./notificationModel");
 
 const STREAK_MILESTONES = [3, 7, 14, 30];
 
+// Định dạng theo NGÀY THEO GIỜ ĐỊA PHƯƠNG (không dùng toISOString, vì nó quy
+// đổi sang UTC trước khi cắt chuỗi — với múi giờ GMT+7, mốc nửa đêm giờ địa
+// phương lại rơi vào 17h chiều hôm trước theo UTC, khiến toISOString() luôn
+// trả về NGÀY HÔM TRƯỚC thay vì đúng ngày hiện tại).
 function toDateStr(d) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 async function logActivity(userId) {

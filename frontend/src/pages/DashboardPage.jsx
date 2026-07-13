@@ -307,7 +307,11 @@ export default function DashboardPage() {
             <div style={{ display: "flex", alignItems: "flex-end", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
               {(activity.week.length ? activity.week : Array(7).fill(null)).map((d, i) => {
                 const dayLabel = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i];
-                const dateNum = d?.date ? new Date(d.date).getDate() : "";
+                // Lấy trực tiếp phần ngày từ chuỗi "YYYY-MM-DD" thay vì qua
+                // new Date().getDate() — parse qua Date sẽ coi chuỗi là mốc
+                // UTC rồi đổi sang giờ local, có thể lệch mất 1 ngày tùy múi
+                // giờ trình duyệt.
+                const dateNum = d?.date ? Number(d.date.slice(8, 10)) : "";
                 const isToday = i === todayIdx;
                 return (
                   <div key={d?.date || i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
@@ -319,7 +323,7 @@ export default function DashboardPage() {
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
                       fontSize: 9.5, fontWeight: 700, flexShrink: 0,
                       boxShadow: isToday ? `0 0 0 1.5px ${C.red}` : "none" }}>
-                      {d?.active ? "✓" : dateNum}
+                      {dateNum}
                     </span>
                   </div>
                 );

@@ -2,8 +2,14 @@ const pool = require("../config/db");
 
 const DAILY_POINTS = 10;
 
+// Định dạng theo ngày giờ địa phương, không dùng toISOString (xem giải thích
+// trong activityModel.js — toISOString() quy đổi sang UTC nên với GMT+7 luôn
+// bị lùi mất 1 ngày so với ngày thực tế).
 function toDateStr(d) {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 async function checkIn(userId) {
