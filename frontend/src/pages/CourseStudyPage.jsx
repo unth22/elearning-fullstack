@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getCourseById, getVocabulary, getGrammar, getSentences, getPhrases, getDialogue, getReadingPassages, getComprehensionQuestions } from "../services/courseService";
 import { speak } from "../components/study/helpers";
@@ -60,10 +60,20 @@ export default function CourseStudyPage() {
   const [moduleProgress, setModuleProgress] = useState({}); // { [moduleIndex]: Set(stepId) }
   const [enrolledAt, setEnrolledAt] = useState(null);
   const [dark, setDark] = useState(() => localStorage.getItem("studyTheme") === "dark");
+  const activeModuleRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("studyTheme", dark ? "dark" : "light");
   }, [dark]);
+
+  // Cuộn bài học đang chọn lên gần đầu danh sách module bên trái, để khi bấm
+  // vào 1 bài từ lộ trình Dashboard (dẫn thẳng vào module đó) học viên thấy
+  // ngay bài đang học thay vì phải tự cuộn tìm trong sidebar. Phụ thuộc cả
+  // course vì lúc mount đầu tiên (course chưa tải xong) sidebar chưa render
+  // ra nút module nào để cuộn tới — phải chờ tải xong rồi mới cuộn được.
+  useEffect(() => {
+    activeModuleRef.current?.scrollIntoView({ block: "center", behavior: "auto" });
+  }, [moduleIndex, course]);
 
   useEffect(() => {
     setLoading(true);
@@ -108,7 +118,7 @@ export default function CourseStudyPage() {
   // từng thẻ) — mở lên là đã thấy hết nội dung, nên coi là hoàn thành ngay khi
   // xem. Các bước còn lại (flashcard/quiz/nét chữ/nghe chép/shadowing) có nhiều
   // thẻ/câu nối tiếp nhau nên phải tự báo hoàn thành qua onComplete khi đi hết.
-  const PASSIVE_STEPS = ["lecture", "phrases", "grammar", "dialogue"];
+  const PASSIVE_STEPS = ["lecture", "grammar", "dialogue"];
   useEffect(() => {
     if (!course) return;
     const mods = course.intro_content?.modules || [];
@@ -212,6 +222,7 @@ export default function CourseStudyPage() {
               {modules.map((m, i) => (
                 <button
                   key={i}
+                  ref={moduleIndex === i ? activeModuleRef : null}
                   onClick={() => selectModule(i)}
                   className="w-full text-left px-3.5 py-2.5 rounded-[10px] mb-1 text-sm transition-all"
                   style={{
@@ -273,7 +284,7 @@ export default function CourseStudyPage() {
         <div className="flex-1 overflow-y-auto py-7 px-5" style={{ background: theme.pageBg }}>
           {mode === "lecture" && trialExpired && <TrialExpiredNotice accentColor={accentColor} />}
           {mode === "lecture" && !trialExpired && <LectureMode course={course} moduleIndex={moduleIndex} accentColor={accentColor} notes={notes} onSaveNote={handleSaveNote} onUpdateNote={handleUpdateNote} dark={dark} />}
-          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} />}
+          {mode === "phrases" && <PhrasesMode phrases={scopedPhrases} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("phrases")} key={`ph-${moduleIndex}`} />}
           {mode === "dialogue" && <DialogueMode lines={scopedDialogue} accentColor={accentColor} dark={dark} />}
           {mode === "flashcard" && <FlashcardMode vocab={mainVocab} accentColor={accentColor} dark={dark} onComplete={() => markStepComplete("flashcard")} key={`fc-${moduleIndex}`} />}
           {mode === "quiz" && (scopedPassage

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { speak } from "./helpers";
 
 const PUNCT = /[，。！？、,.!?\s]/;
@@ -69,16 +69,31 @@ function ScoreRing({ percent, size = 96 }) {
   );
 }
 
+const MAX_RECORD_SECONDS = 15;
+
 export default function ShadowingMode({ sentences, accentColor, onComplete }) {
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState("ready"); // ready | listening | shadowing | countdown | recording | recorded | evaluated
   const [countdown, setCountdown] = useState(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [transcript, setTranscript] = useState("");
   const [attempts, setAttempts] = useState(0);
   const [bestScores, setBestScores] = useState({}); // { [sentenceIdx]: bestPercent } — trong phiên học này
   const evaluated = useRef(new Set());
   const completedRef = useRef(false);
   const countdownTimer = useRef(null);
+  const recognitionRef = useRef(null);
+  const recordTimer = useRef(null);
+
+  // Dọn dẹp mic/timer khi rời khỏi chế độ Shadowing giữa chừng (chuyển bước
+  // khác trong toolbar) để tránh ghi âm chạy ngầm sau khi đã rời trang.
+  useEffect(() => {
+    return () => {
+      if (countdownTimer.current) clearInterval(countdownTimer.current);
+      if (recordTimer.current) clearInterval(recordTimer.current);
+      if (recognitionRef.current) { recognitionRef.current.onend = null; recognitionRef.current.abort(); }
+    };
+  }, []);
 
   if (!sentences.length) return <p className="text-chu-nhat text-center">Chưa có câu ví dụ cho khóa học này.</p>;
 
@@ -112,23 +127,64 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
     }, 700);
   };
 
+  const clearRecordTimer = () => {
+    if (recordTimer.current) { clearInterval(recordTimer.current); recordTimer.current = null; }
+  };
+
+  // Dừng ghi âm chủ động (do học viên bấm nút, hết giờ tối đa, hoặc chuyển
+  // câu/thử lại) — không set phase ở đây, việc chuyển sang "recorded" chỉ xảy
+  // ra trong onend, tức là khi mic THỰC SỰ đã dừng ghi, không phải chỉ vừa có
+  // 1 kết quả tạm thời.
+  const stopRecording = () => {
+    recognitionRef.current?.stop();
+  };
+
+  // continuous + interimResults để mic không tự cắt ngay sau vài chữ đầu tiên
+  // (như trước đây), mà chờ học viên nói xong cả câu hoặc tự bấm dừng. Có giới
+  // hạn thời gian tối đa để tránh treo ghi âm nếu quên bấm dừng.
   const actuallyRecord = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const r = new SR();
-    r.lang = "zh-CN"; r.continuous = false; r.interimResults = false;
-    r.onresult = (e) => { setTranscript(e.results[0][0].transcript); setPhase("recorded"); };
-    r.onerror = () => setPhase("recorded");
+    r.lang = "zh-CN"; r.continuous = true; r.interimResults = true;
+    let finalText = "";
+    r.onresult = (e) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t; else interim += t;
+      }
+      setTranscript((finalText + interim).trim());
+    };
+    r.onerror = () => stopRecording();
+    r.onend = () => {
+      if (recognitionRef.current !== r) return; // callback trễ từ 1 phiên ghi âm cũ, bỏ qua
+      recognitionRef.current = null;
+      clearRecordTimer();
+      setPhase("recorded");
+    };
+    recognitionRef.current = r;
     r.start();
     setPhase("recording");
+    setRecordingSeconds(0);
+    recordTimer.current = setInterval(() => {
+      setRecordingSeconds((s) => {
+        if (s + 1 >= MAX_RECORD_SECONDS) stopRecording();
+        return s + 1;
+      });
+    }, 1000);
   };
 
   const retry = () => {
     if (countdownTimer.current) clearInterval(countdownTimer.current);
-    setPhase("ready"); setTranscript(""); setCountdown(null);
+    clearRecordTimer();
+    if (recognitionRef.current) { recognitionRef.current.onend = null; recognitionRef.current.abort(); recognitionRef.current = null; }
+    setPhase("ready"); setTranscript(""); setCountdown(null); setRecordingSeconds(0);
   };
   const next = () => {
     if (countdownTimer.current) clearInterval(countdownTimer.current);
-    setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); setAttempts(0); setCountdown(null);
+    clearRecordTimer();
+    if (recognitionRef.current) { recognitionRef.current.onend = null; recognitionRef.current.abort(); recognitionRef.current = null; }
+    setIdx((i) => (i + 1) % sentences.length); setPhase("ready"); setTranscript(""); setAttempts(0); setCountdown(null); setRecordingSeconds(0);
   };
 
   const phaseColors = { ready: "#2A4A7F", listening: "#E8B84B", shadowing: "#4CAF8E", countdown: "#E8B84B", recording: "#E74C3C", recorded: accentColor, evaluated: accentColor };
@@ -164,7 +220,11 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
             <div className="text-[#E8B84B] text-sm mt-1">Chuẩn bị... sắp ghi âm</div>
           </div>
         )}
-        {phase === "recording" && <div className="text-[#E74C3C] text-sm mb-3 animate-pulse">🔴 Đang ghi âm — nói ngay bây giờ!</div>}
+        {phase === "recording" && (
+          <div className="text-[#E74C3C] text-sm mb-3 animate-pulse">
+            🔴 Đang ghi âm — nói cả câu rồi bấm "Dừng ghi âm" ({recordingSeconds}s/{MAX_RECORD_SECONDS}s)
+          </div>
+        )}
         {phase === "recorded" && <div className="text-sm mb-3" style={{ color: accentColor }}>🎙 Đã ghi âm xong — bấm "Đánh giá ghi âm" để chấm điểm</div>}
 
         {phase === "evaluated" && scored && (
@@ -191,9 +251,9 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
         {phase !== "ready" && <div className="text-chu-nhat text-sm mt-1.5">{sentence.vi}</div>}
       </div>
 
-      {phase === "recorded" && transcript && (
+      {(phase === "recording" || phase === "recorded") && transcript && (
         <div className="bg-dem-nhat-2 border border-vien-dem rounded-xl p-4 mb-4">
-          <div className="text-chu-nhat text-xs mb-1.5">Bạn đã nói:</div>
+          <div className="text-chu-nhat text-xs mb-1.5">{phase === "recording" ? "Đang nghe được:" : "Bạn đã nói:"}</div>
           <div className="text-chu-ngoc text-lg font-serif">{transcript}</div>
         </div>
       )}
@@ -230,7 +290,7 @@ export default function ShadowingMode({ sentences, accentColor, onComplete }) {
           <button onClick={retry} className="px-5 py-3 bg-dem-nhat rounded-xl" style={{ border: `1px solid ${accentColor}`, color: accentColor }}>✕ Hủy</button>
         )}
         {phase === "recording" && (
-          <div className="text-chu-nhat text-[13px] py-3">🎙 Đang lắng nghe...</div>
+          <button onClick={stopRecording} className="px-8 py-3.5 bg-[#E74C3C] border-none text-white rounded-2xl text-base font-bold">⏹ Dừng ghi âm</button>
         )}
         {phase === "recorded" && (
           <>
