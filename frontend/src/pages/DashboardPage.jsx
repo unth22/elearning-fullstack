@@ -303,17 +303,28 @@ export default function DashboardPage() {
               {/* Điểm danh — gọn, tự động khi học sinh học bất kỳ bước nào */}
               <DailyCheckin summary={checkin} onChecked={setCheckin} />
             </div>
-            {/* Điểm danh tuần — nhỏ gọn, không nêu bật */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
-              {(activity.week.length ? activity.week : Array(7).fill({ active: false })).map((d, i) => (
-                <span key={d.date || i} title={["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i]} style={{
-                  width: 14, height: 14, borderRadius: 4, background: d.active ? C.red : C.border,
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 8, color: "#fff", flexShrink: 0 }}>
-                  {d.active ? "✓" : ""}
-                </span>
-              ))}
-              <span style={{ fontSize: 10, color: C.t3, marginLeft: 3 }}>tuần này</span>
+            {/* Điểm danh tuần — dạng lịch mini: thứ ở trên, ngày/dấu tick ở dưới */}
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 5, marginTop: 10, justifyContent: "flex-end" }}>
+              {(activity.week.length ? activity.week : Array(7).fill(null)).map((d, i) => {
+                const dayLabel = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"][i];
+                const dateNum = d?.date ? new Date(d.date).getDate() : "";
+                const isToday = i === todayIdx;
+                return (
+                  <div key={d?.date || i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                    <span style={{ fontSize: 8.5, color: isToday ? C.t1 : C.t3, fontWeight: isToday ? 700 : 500 }}>{dayLabel}</span>
+                    <span style={{
+                      width: 20, height: 20, borderRadius: 6,
+                      background: d?.active ? C.red : C.border,
+                      color: d?.active ? "#fff" : C.t3,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 9.5, fontWeight: 700, flexShrink: 0,
+                      boxShadow: isToday ? `0 0 0 1.5px ${C.red}` : "none" }}>
+                      {d?.active ? "✓" : dateNum}
+                    </span>
+                  </div>
+                );
+              })}
+              <span style={{ fontSize: 10, color: C.t3, marginLeft: 4, alignSelf: "center" }}>tuần này</span>
             </div>
           </div>
         </div>
