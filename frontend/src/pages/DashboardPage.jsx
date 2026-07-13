@@ -37,7 +37,20 @@ export default function DashboardPage() {
   const [checkin, setCheckin] = useState(null);
   const sidebarRef = useRef(null);
   const currentRowRef = useRef(null);
+  const courseDropdownRef = useRef(null);
   const [roadmapMaxHeight, setRoadmapMaxHeight] = useState(null);
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false);
+
+  // Đóng dropdown "Khóa học của tôi" khi bấm ra ngoài.
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (courseDropdownRef.current && !courseDropdownRef.current.contains(e.target)) {
+        setCourseDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -234,25 +247,48 @@ export default function DashboardPage() {
                 + Đăng ký khóa học khác
               </Link>
             </div>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              {enrollments.map((e) => {
-                const active = e.course_id === selectedCourseId;
-                const accent = e.accent_color || C.red;
-                return (
-                  <button key={e.course_id} onClick={() => setSelectedCourseId(e.course_id)} style={{
-                    display: "flex", alignItems: "center", gap: 10, minWidth: 160,
-                    padding: "12px 16px", borderRadius: 16, cursor: "pointer", textAlign: "left",
-                    border: `1.5px solid ${active ? accent : C.border}`,
-                    background: active ? accent + "0F" : "#fff",
-                    boxShadow: active ? `0 4px 14px ${accent}22` : "none" }}>
-                    <span style={{ fontSize: 22, flexShrink: 0 }}>{e.icon}</span>
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? accent : C.t1, lineHeight: 1.3 }}>{e.title}</div>
-                      {e.name_zh && <div style={{ fontFamily: C.hanzi, fontSize: 11, color: C.t3, marginTop: 2 }}>{e.name_zh}</div>}
-                    </div>
-                  </button>
-                );
-              })}
+            <div ref={courseDropdownRef} style={{ position: "relative", maxWidth: 320 }}>
+              <button onClick={() => setCourseDropdownOpen((o) => !o)} style={{
+                display: "flex", alignItems: "center", gap: 10, width: "100%",
+                padding: "12px 16px", borderRadius: 16, cursor: "pointer", textAlign: "left",
+                border: `1.5px solid ${enrollment.accent_color || C.red}`,
+                background: (enrollment.accent_color || C.red) + "0F",
+                boxShadow: `0 4px 14px ${(enrollment.accent_color || C.red)}22` }}>
+                <span style={{ fontSize: 22, flexShrink: 0 }}>{enrollment.icon}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: enrollment.accent_color || C.red, lineHeight: 1.3 }}>{enrollment.title}</div>
+                  {enrollment.name_zh && <div style={{ fontFamily: C.hanzi, fontSize: 11, color: C.t3, marginTop: 2 }}>{enrollment.name_zh}</div>}
+                </div>
+                <span style={{ fontSize: 12, color: C.t3, flexShrink: 0,
+                  transform: courseDropdownOpen ? "rotate(180deg)" : "none", transition: "transform .15s" }}>▼</span>
+              </button>
+
+              {courseDropdownOpen && (
+                <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
+                  background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 16,
+                  boxShadow: "0 10px 30px rgba(0,0,0,.12)", overflow: "hidden", zIndex: 20 }}>
+                  {enrollments.map((e, i) => {
+                    const active = e.course_id === selectedCourseId;
+                    const accent = e.accent_color || C.red;
+                    return (
+                      <button key={e.course_id}
+                        onClick={() => { setSelectedCourseId(e.course_id); setCourseDropdownOpen(false); }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 10, width: "100%",
+                          padding: "12px 16px", cursor: "pointer", textAlign: "left", border: "none",
+                          borderBottom: i < enrollments.length - 1 ? `1px solid ${C.border}` : "none",
+                          background: active ? accent + "14" : "#fff" }}>
+                        <span style={{ fontSize: 20, flexShrink: 0 }}>{e.icon}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, color: active ? accent : C.t1, lineHeight: 1.3 }}>{e.title}</div>
+                          {e.name_zh && <div style={{ fontFamily: C.hanzi, fontSize: 11, color: C.t3, marginTop: 2 }}>{e.name_zh}</div>}
+                        </div>
+                        {active && <span style={{ color: accent, fontSize: 14, flexShrink: 0 }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <div>
