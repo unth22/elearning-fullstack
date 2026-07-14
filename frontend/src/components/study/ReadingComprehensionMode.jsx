@@ -64,7 +64,7 @@ function Question({ q, index, accentColor, dark, onAnswered }) {
   );
 }
 
-export default function ReadingComprehensionMode({ passage, questions, accentColor, dark = false, onComplete, notes, onSaveNote, onUpdateNote, vocab = [] }) {
+export default function ReadingComprehensionMode({ passage, questions, accentColor, dark = false, onComplete, notes, onSaveNote, onUpdateNote, vocab = [], phrases = [] }) {
   const answered = useRef(new Set());
   const completedRef = useRef(false);
 
@@ -101,10 +101,10 @@ export default function ReadingComprehensionMode({ passage, questions, accentCol
         {onSaveNote ? (
           <Highlightable as="div" text={passage.content_zh} notes={passageNotes} onSave={onSaveNote} onUpdate={onUpdateNote}
             className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3"
-            renderText={(t) => <InteractiveText text={t} vocab={vocab} accentColor={accentColor} dark={dark} />} />
+            renderText={(t) => <InteractiveText text={t} vocab={vocab} phrases={phrases} accentColor={accentColor} dark={dark} />} />
         ) : (
           <div className="text-chu-ngoc text-base font-serif leading-loose whitespace-pre-line mb-3">
-            <InteractiveText text={passage.content_zh} vocab={vocab} accentColor={accentColor} dark={dark} />
+            <InteractiveText text={passage.content_zh} vocab={vocab} phrases={phrases} accentColor={accentColor} dark={dark} />
           </div>
         )}
         {passage.content_pinyin && (

@@ -27,19 +27,26 @@ function segmentText(text, vocabWords) {
 function Word({ text, entry, accentColor, dark, active, onOpen, onClose }) {
   const [remote, setRemote] = useState(null);
 
+  // Chỉ nhận kết quả khớp CHÍNH XÁC với từ/cụm đang bấm — trước đây có
+  // fallback lấy results[0] khi không khớp, khiến 1 chữ lẻ (vd. "开" trong
+  // tên riêng) hiện nhầm nghĩa của 1 từ khác chỉ vì tra ILIKE ra nó trước
+  // (vd. "开源" — mã nguồn mở). Không khớp chính xác thì coi như chưa có
+  // nghĩa, và tạm thời không hiện gì thay vì hiện thông báo "chưa có".
   function ensureLoaded() {
     if (entry || remote) return;
     setRemote({ loading: true });
     searchDict(text)
       .then((results) => {
-        const match = results.find((r) => r.zh === text) || results[0];
-        setRemote(match ? { pinyin: match.pinyin, vi: match.vi, loading: false } : { notFound: true, loading: false });
+        const match = results.find((r) => r.zh === text);
+        if (match) setRemote({ pinyin: match.pinyin, vi: match.vi, loading: false });
+        else { setRemote({ notFound: true, loading: false }); onClose(); }
       })
-      .catch(() => setRemote({ notFound: true, loading: false }));
+      .catch(() => { setRemote({ notFound: true, loading: false }); onClose(); });
   }
 
   const data = entry || remote;
   const bubbleBg = dark ? "#22243D" : "#1F2937";
+  const showBubble = active && (!data || data.loading || !data.notFound);
 
   return (
     <span style={{ position: "relative", display: "inline-block" }}>
@@ -51,7 +58,7 @@ function Word({ text, entry, accentColor, dark, active, onOpen, onClose }) {
       >
         {text}
       </span>
-      {active && (
+      {showBubble && (
         <div onClick={(e) => e.stopPropagation()} style={{
           position: "absolute", bottom: "calc(100% + 7px)", left: "50%", transform: "translateX(-50%)",
           background: bubbleBg, color: "#fff", borderRadius: 10, padding: "7px 11px",
@@ -59,8 +66,6 @@ function Word({ text, entry, accentColor, dark, active, onOpen, onClose }) {
           textAlign: "center", fontFamily: "inherit", pointerEvents: "auto" }}>
           {!data || data.loading ? (
             <span style={{ opacity: .7 }}>Đang tra...</span>
-          ) : data.notFound ? (
-            <span style={{ opacity: .7 }}>Chưa có trong từ điển</span>
           ) : (
             <>
               <div style={{ fontStyle: "italic", color: accentColor }}>{data.pinyin}</div>
@@ -76,12 +81,14 @@ function Word({ text, entry, accentColor, dark, active, onOpen, onClose }) {
   );
 }
 
-export default function InteractiveText({ text, vocab = [], accentColor, dark = false }) {
+export default function InteractiveText({ text, vocab = [], phrases = [], accentColor, dark = false }) {
   const [activeKey, setActiveKey] = useState(null);
 
+  // Gộp cả cụm từ (phrases) lẫn từ vựng của bài, ưu tiên khớp cụm từ dài
+  // nhất trước — để hiện nghĩa nguyên cụm thay vì tách vụn từng chữ lẻ.
   const vocabMap = {};
   const vocabWords = [];
-  for (const v of vocab) {
+  for (const v of [...phrases, ...vocab]) {
     if (v.zh && !vocabMap[v.zh]) {
       vocabMap[v.zh] = { pinyin: v.pinyin, vi: v.vi };
       vocabWords.push(v.zh);
