@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import { getCourseById, getVocabulary, getGrammar, getSentences, getPhrases, getDialogue, getReadingPassages, getComprehensionQuestions } from "../services/courseService";
-import { speak } from "../components/study/helpers";
 import FlashcardMode from "../components/study/FlashcardMode";
 import QuizMode from "../components/study/QuizMode";
 import VocabMode from "../components/study/VocabMode";
@@ -269,11 +268,6 @@ export default function CourseStudyPage() {
             <span className="mx-2" style={{ color: theme.text3 }}>›</span>
             <span className="font-semibold" style={{ color: theme.text1 }}>{currentStepLabel}</span>
           </div>
-          <button
-            onClick={() => scopedVocab[0] && speak(scopedVocab[0].zh)}
-            className="bg-transparent rounded-full px-3.5 py-1.5 text-[13px]"
-            style={{ border: `1px solid ${accentColor}44`, color: accentColor }}
-          >🔊 TTS</button>
           <button
             onClick={() => setDark((d) => !d)}
             title={dark ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}
