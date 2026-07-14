@@ -61,7 +61,10 @@ export default function FlashcardMode({ vocab, accentColor, dark = false, onComp
         <span className="text-emerald-600 text-[13px]">✓ {known.size}</span>
       </div>
 
-      <div className="w-[min(480px,100%)] rounded-[24px] px-8 py-9"
+      <div
+        onClick={() => next()}
+        title="Bấm vào thẻ để chuyển sang thẻ tiếp theo"
+        className="w-[min(480px,100%)] rounded-[24px] px-8 py-9 cursor-pointer"
         style={{ background: cardBg, border: cardBorder, boxShadow: cardShadow }}>
         <div className="leading-tight" style={{ fontFamily: C.hanzi, color: textMain, fontSize: 56 }}>{card.zh}</div>
         <div className="text-lg italic mt-3" style={{ color: pinyinColor }}>{card.pinyin}</div>
@@ -87,7 +90,7 @@ export default function FlashcardMode({ vocab, accentColor, dark = false, onComp
         )}
 
         <button
-          onClick={() => speak(card.example_zh || card.zh)}
+          onClick={(e) => { e.stopPropagation(); speak(card.example_zh || card.zh); }}
           className="mt-5 rounded-full px-4 py-2 text-sm font-bold"
           style={{ background: btnBg, color: btnText, border: "none", cursor: "pointer" }}
         >🔊 Nghe câu</button>
