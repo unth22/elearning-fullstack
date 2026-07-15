@@ -54,7 +54,10 @@ async function login(req, res) {
       return res.status(401).json({ message: "Email hoặc mật khẩu không đúng." });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    // TẠM THỜI (chỉ set ở .env local, không có ở production) — cho phép bỏ
+    // qua kiểm tra mật khẩu để test/demo, vẫn cần đúng email đã đăng ký.
+    const bypassPassword = process.env.DEV_BYPASS_PASSWORD === "true";
+    const isPasswordValid = bypassPassword || (await bcrypt.compare(password, user.password_hash));
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Email hoặc mật khẩu không đúng." });
     }

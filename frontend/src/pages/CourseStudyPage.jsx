@@ -22,6 +22,9 @@ import { getMyEnrollments } from "../services/enrollmentService";
 import { getModuleProgress, markModuleStep } from "../services/moduleProgressService";
 
 const TRIAL_DAYS = 3;
+// Tạm thời tắt giới hạn dùng thử 3 ngày — cho full access. Đổi lại thành
+// false khi muốn bật lại giới hạn.
+const TRIAL_DISABLED = true;
 
 // Từ vựng gắn nhãn này chỉ dùng để tra cứu (mục "Từ vựng" có bộ lọc theo tag),
 // không đưa vào vòng luyện tập chính (Flashcard/Trắc nghiệm/Nét chữ) để tránh tràn lan.
@@ -188,7 +191,7 @@ export default function CourseStudyPage() {
   const scopedPassage = passages.find((p) => p.module_index === moduleIndex) || null;
   const scopedQuestions = comprehensionQuestions.filter(inModuleScope);
   const mainVocab = scopedVocab.filter((v) => !(v.tags || []).includes(LOOKUP_ONLY_TAG));
-  const trialExpired = !!enrolledAt
+  const trialExpired = !TRIAL_DISABLED && !!enrolledAt
     && (Date.now() - new Date(enrolledAt).getTime()) > TRIAL_DAYS * 24 * 60 * 60 * 1000;
 
   const currentStepLabel = MODULE_STEPS.find((s) => s.id === mode)?.label
