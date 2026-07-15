@@ -11,6 +11,7 @@ import {
 } from "../services/notificationService";
 import { LEVELS, GOALS } from "../data/learningOptions";
 import { C, Pill, Btn } from "../styles/theme";
+import PasswordInput from "../components/PasswordInput";
 
 const SECTIONS = [
   { id: "info", icon: "👤", label: "Thông tin cá nhân" },
@@ -274,12 +275,11 @@ export default function ProfilePage() {
                 {["Mật khẩu hiện tại", "Mật khẩu mới", "Xác nhận mật khẩu mới"].map((label, i) => (
                   <div key={label} style={{ marginBottom: 14 }}>
                     <label style={{ fontSize: 13, fontWeight: 700, color: C.t2, display: "block", marginBottom: 6 }}>{label}</label>
-                    <input
-                      type="password"
+                    <PasswordInput
                       value={[pwCurrent, pwNew, pwConfirm][i]}
                       onChange={(e) => [setPwCurrent, setPwNew, setPwConfirm][i](e.target.value)}
                       style={{ width: "100%", padding: "10px 14px", border: `1.5px solid ${C.border}`,
-                        borderRadius: 11, fontSize: 14, boxSizing: "border-box" }} />
+                        borderRadius: 11, fontSize: 14 }} />
                   </div>
                 ))}
                 {pwError && <p style={{ color: C.red, fontSize: 13, marginBottom: 12 }}>{pwError}</p>}

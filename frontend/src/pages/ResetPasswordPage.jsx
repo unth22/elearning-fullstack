@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { resetPassword } from "../services/authService";
+import PasswordInput from "../components/PasswordInput";
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
@@ -71,15 +72,17 @@ export default function ResetPasswordPage() {
               )}
 
               <label className="block text-sm text-black/70 mb-1">Mật khẩu mới</label>
-              <input
-                type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6}
-                className="w-full border border-black/10 rounded-md px-3 py-2 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
+              <PasswordInput
+                value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6}
+                wrapperClassName="mb-4"
+                className="w-full border border-black/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
               />
 
               <label className="block text-sm text-black/70 mb-1">Nhập lại mật khẩu mới</label>
-              <input
-                type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6}
-                className="w-full border border-black/10 rounded-md px-3 py-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
+              <PasswordInput
+                value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6}
+                wrapperClassName="mb-6"
+                className="w-full border border-black/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
               />
 
               <button

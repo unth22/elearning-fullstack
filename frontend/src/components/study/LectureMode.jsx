@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Highlightable from "./Highlightable";
 import StrokeOrderDemo from "./StrokeOrderDemo";
-import { speak } from "./helpers";
+import { speakPinyin } from "./helpers";
 
 // Bài giảng dạng nội dung phong phú (bảng biểu, danh sách, các bước, hình ảnh)
 // — dùng cho những module tham khảo/nền tảng (vd. ngữ âm, cài đặt gõ) không
@@ -77,7 +77,7 @@ function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
                   {row.map((cell, ci) => (
                     <td key={ci} className="px-3 py-2" style={{ color: textColor, borderBottom: ri < s.rows.length - 1 ? `1px solid ${borderColor}` : "none" }}>
                       {s.speakable && cell ? (
-                        <button onClick={() => speak(cell, "zh-CN")}
+                        <button onClick={() => speakPinyin(cell)}
                           className="bg-transparent border-none cursor-pointer p-0 font-inherit hover:underline"
                           style={{ color: "inherit" }}>{cell} 🔊</button>
                       ) : cell}
@@ -95,7 +95,7 @@ function Section({ s, accentColor, dark, notes, onSaveNote, onUpdateNote }) {
           {s.rows.map((row, ri) => (
             <div key={ri} className="flex gap-2 flex-wrap">
               {row.map((syl, ci) => (
-                <button key={ci} onClick={() => speak(syl, "zh-CN")}
+                <button key={ci} onClick={() => speakPinyin(syl)}
                   className="rounded-lg px-3 py-1.5 text-sm font-semibold cursor-pointer"
                   style={{ border: `1px solid ${accentColor}44`, background: cellBg, color: textColor }}>
                   {syl}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
 import { getMyLatestEnrollment } from "../services/enrollmentService";
+import PasswordInput from "../components/PasswordInput";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -60,9 +61,10 @@ export default function LoginPage() {
           <label className="block text-sm text-black/70">Mật khẩu</label>
           <Link to="/forgot-password" className="text-xs text-do-han font-medium">Quên mật khẩu?</Link>
         </div>
-        <input
-          type="password" name="password" value={form.password} onChange={handleChange} required
-          className="w-full border border-black/10 rounded-md px-3 py-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
+        <PasswordInput
+          name="password" value={form.password} onChange={handleChange} required
+          wrapperClassName="mb-6"
+          className="w-full border border-black/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
         />
 
         <button

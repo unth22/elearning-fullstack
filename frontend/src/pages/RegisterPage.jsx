@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../services/authService";
+import PasswordInput from "../components/PasswordInput";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -51,9 +52,10 @@ export default function RegisterPage() {
         />
 
         <label className="block text-sm text-black/70 mb-1">Mật khẩu</label>
-        <input
-          type="password" name="password" value={form.password} onChange={handleChange} required minLength={6}
-          className="w-full border border-black/10 rounded-md px-3 py-2 mb-6 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
+        <PasswordInput
+          name="password" value={form.password} onChange={handleChange} required minLength={6}
+          wrapperClassName="mb-6"
+          className="w-full border border-black/10 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-do-han/30"
         />
 
         <button
