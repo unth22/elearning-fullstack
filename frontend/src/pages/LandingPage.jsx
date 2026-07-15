@@ -4,6 +4,9 @@ import { getCurrentUser } from "../services/authService";
 import { getMyLatestEnrollment } from "../services/enrollmentService";
 import { C, Pill, Btn } from "../styles/theme";
 
+// Tạm ẩn phần giá trên landing page — bật lại true khi cần hiện giá.
+const SHOW_PRICING = false;
+
 // Khóa học chuyên ngành theo giáo trình sách — bao gồm 5 khóa gốc
 // + toàn bộ chuyên ngành thực tế đang có trong backend (courses.industry).
 const COURSES = [
@@ -464,10 +467,12 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 700, color: C.gold }}>{c.price}đ</span>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,.45)" }}>{c.note}</span>
-                  </div>
+                  {SHOW_PRICING && (
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                      <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 700, color: C.gold }}>{c.price}đ</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,.45)" }}>{c.note}</span>
+                    </div>
+                  )}
                   <button onClick={scrollToForm} className="lp-course-btn" style={{ width: "100%",
                     borderRadius: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
                     padding: "12px 24px", fontSize: 14 }}>
