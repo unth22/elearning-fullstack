@@ -76,9 +76,8 @@ export default function DashboardPage() {
     Promise.all([getMyEnrollments(), getMyActivity(), getMyCheckin().catch(() => null)])
       .then(([enrs, act, ci]) => {
         if (cancelled) return;
-        if (!enrs.length) { navigate("/courses"); return; }
         setEnrollments(enrs);
-        setSelectedCourseId(enrs[0].course_id);
+        setSelectedCourseId(enrs[0]?.course_id || null);
         setActivity(act);
         setCheckin(ci);
       })

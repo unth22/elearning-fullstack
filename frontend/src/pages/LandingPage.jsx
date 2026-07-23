@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/authService";
-import { getMyLatestEnrollment } from "../services/enrollmentService";
 import { C, Pill, Btn } from "../styles/theme";
 
 // Tạm ẩn phần giá trên landing page — bật lại true khi cần hiện giá.
@@ -175,12 +174,11 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Người đã đăng nhập bấm "Vào học" thì vào thẳng danh sách khóa học,
-  // chưa đăng nhập thì phải qua trang đăng nhập trước.
-  const goToStudy = async () => {
-    if (!getCurrentUser()) { navigate("/login"); return; }
-    const enrollment = await getMyLatestEnrollment().catch(() => null);
-    navigate(enrollment ? "/dashboard" : "/courses");
+  // Người đã đăng nhập bấm "Vào học" thì vào thẳng dashboard (dashboard tự
+  // xử lý trường hợp chưa đăng ký khóa nào), chưa đăng nhập thì phải qua
+  // trang đăng nhập trước.
+  const goToStudy = () => {
+    navigate(getCurrentUser() ? "/dashboard" : "/login");
   };
   const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth" });
 

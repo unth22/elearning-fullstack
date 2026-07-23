@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../services/authService";
-import { getMyLatestEnrollment } from "../services/enrollmentService";
 import PasswordInput from "../components/PasswordInput";
 
 export default function LoginPage() {
@@ -22,8 +21,7 @@ export default function LoginPage() {
       const { user, token } = await loginUser(form);
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
-      const enrollment = await getMyLatestEnrollment().catch(() => null);
-      navigate(enrollment ? "/dashboard" : "/courses");
+      navigate("/dashboard");
     } catch (err) {
       setError(err.message);
     } finally {
